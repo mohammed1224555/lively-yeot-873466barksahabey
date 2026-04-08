@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ إعداد bark - خطوة واحدة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyClliyCsXUV0sq89y6BfoYNUWCMBB8aFH8",
+    authDomain: "bark-44676.firebaseapp.com",
+    projectId: "bark-44676",
+    storageBucket: "bark-44676.firebasestorage.app",
+    messagingSenderId: "310662661096",
+    appId: "1:310662661096:web:668be5d0fe292075601a5d"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  window.runSetup = async function() {
+    const btn = document.getElementById('setupBtn');
+    const status = document.getElementById('status');
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value.trim();
+    const name = document.getElementById('adminName').value.trim() || 'المدير العام';
+
+    if (!email || !password) {
+      showStatus('error', '❌ أدخل البريد وكلمة المرور');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري الإعداد...';
+
+    try {
+      // 1. تسجيل الدخول
+      showStatus('info', '🔐 جاري تسجيل الدخول...');
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = cred.user.uid;
+
+      showStatus('info', '📝 جاري إنشاء سجل المدير في Firestore...');
+
+      // 2. إنشاء سجل المدير
+      await setDoc(doc(db, 'users', uid), {
+        name: name,
+        email: email,
+        role: 'admin',
+        branchId: 'all',
+        status: 'active',
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp()
+      });
+
+      // 3. إنشاء إعدادات النظام الأساسية
+      showStatus('info', '⚙️ إنشاء إعدادات النظام...');
+      await setDoc(doc(db, 'system', 'settings'), {
+        companyName: 'نظام البرق',
+        currency: 'ريال',
+        timezone: 'Asia/Riyadh',
+        createdAt: serverTimestamp()
+      });
+
+      // 4. إنشاء صلاحيات افتراضية
+      await setDoc(doc(db, 'system', 'permissions'), {
+        admin:   { sales:true,  inventory:true,  customers:true,  reports:true,  settings:true,  users:true,  branches:true  },
+        manager: { sales:true,  inventory:true,  customers:true,  reports:true,  settings:false, users:false, branches:false },
+        cashier: { sales:true,  inventory:false, customers:true,  reports:false, settings:false, users:false, branches:false },
+        viewer:  { sales:false, inventory:false, customers:false, reports:true,  settings:false, users:false, branches:false }
+      });
+
+      showStatus('success', `✅ تم الإعداد بنجاح! UID: ${uid}`);
+      document.getElementById('successBox').style.display = 'block';
+      document.getElementById('uidDisplay').textContent = uid;
+      btn.textContent = '✅ تم!';
+
+    } catch(e) {
+      const msgs = {
+        'auth/invalid-credential': 'كلمة المرور أو البريد غلط',
+        'auth/user-not-found': 'البريد غير موجود',
+        'auth/wrong-password': 'كلمة المرور غلط',
+        'auth/network-request-failed': 'مشكلة في الاتصال بالإنترنت'
+      };
+      showStatus('error', '❌ ' + (msgs[e.code] || e.message));
+      btn.disabled = false;
+      btn.textContent = '🚀 تشغيل الإعداد';
+    }
+  };
+
+  function showStatus(type, msg) {
+    const el = document.getElementById('status');
+    const colors = {
+      info: '#63a5ff',
+      success: '#34d399',
+      error: '#fb7185'
+    };
+    el.style.display = 'flex';
+    el.style.color = colors[type];
+    el.style.borderColor = colors[type] + '40';
+    el.style.background = colors[type] + '10';
+    el.textContent = msg;
+  }
+</script>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Cairo', sans-serif;
+  background: #030a14;
+  color: rgba(255,255,255,0.9);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(99,165,255,0.12) 0%, transparent 70%);
+  pointer-events:none;
+}
+.box {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+.box-header {
+  padding: 32px 32px 24px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(99,165,255,0.05);
+}
+.box-header .emoji { font-size: 52px; margin-bottom: 12px; }
+.box-header h1 { font-size: 22px; font-weight: 900; color: #63a5ff; }
+.box-header p { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+.box-body { padding: 28px 32px; }
+
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 7px;
+  letter-spacing: 0.3px;
+}
+.form-control {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 11px;
+  color: rgba(255,255,255,0.9);
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-control:focus { border-color: #63a5ff; }
+.form-control::placeholder { color: rgba(255,255,255,0.25); }
+
+.info-box {
+  background: rgba(99,165,255,0.08);
+  border: 1px solid rgba(99,165,255,0.2);
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 12px;
+  color: rgba(147,197,253,0.9);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+#status {
+  display: none;
+  padding: 12px 16px;
+  border-radius: 11px;
+  border: 1px solid;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-setup {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, rgba(99,165,255,0.3), rgba(167,139,250,0.2));
+  border: 1px solid rgba(99,165,255,0.4);
+  border-radius: 12px;
+  color: #93c5fd;
+  font-family: 'Cairo', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+.btn-setup:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(99,165,255,0.4), rgba(167,139,250,0.3));
+  transform: translateY(-1px);
+}
+.btn-setup:disabled { opacity: 0.6; cursor: not-allowed; }
+
+#successBox {
+  display: none;
+  margin-top: 20px;
+  background: rgba(52,211,153,0.08);
+  border: 1px solid rgba(52,211,153,0.25);
+  border-radius: 14px;
+  padding: 20px;
+}
+.success-title { font-size: 16px; font-weight: 900; color: #34d399; margin-bottom: 12px; }
+.next-steps { list-style: none; }
+.next-steps li {
+  padding: 10px 0;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: rgba(255,255,255,0.8);
+}
+.next-steps li:last-child { border-bottom: none; }
+.step-num {
+  width: 22px; height: 22px;
+  background: rgba(52,211,153,0.2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900; color: #34d399;
+  flex-shrink: 0;
+}
+.uid-badge {
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #63a5ff;
+  word-break: break-all;
+  margin-top: 6px;
+  display: block;
+}
+
+.divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <div class="box-header">
+    <div class="emoji">⚡</div>
+    <h1>إعداد نظام البرق</h1>
+    <p>خطوة واحدة فقط — تسجيل الدخول لتفعيل حساب المدير</p>
+  </div>
+
+  <div class="box-body">
+
+    <div class="info-box">
+      🔗 مربوط بمشروع: <strong>bark-44676</strong><br>
+      أدخل بيانات حساب المدير الذي أنشأته في Firebase Authentication
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">اسم المدير (سيظهر في اللوحة)</label>
+      <input type="text" class="form-control" id="adminName" placeholder="المدير العام" value="المدير العام">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">البريد الإلكتروني</label>
+      <input type="email" class="form-control" id="adminEmail" placeholder="admin@bark.com" dir="ltr" value="admin@bark.com">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">كلمة المرور</label>
+      <input type="password" class="form-control" id="adminPassword" placeholder="كلمة المرور التي أنشأتها في Firebase" dir="ltr">
+    </div>
+
+    <div id="status"></div>
+
+    <button class="btn-setup" id="setupBtn" onclick="runSetup()">
+      🚀 تشغيل الإعداد الآن
+    </button>
+
+    <div id="successBox">
+      <div class="success-title">🎉 النظام جاهز تماماً!</div>
+      <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:12px;">UID المدير:</div>
+      <code class="uid-badge" id="uidDisplay"></code>
+      <div class="divider"></div>
+      <ul class="next-steps">
+        <li>
+          <div class="step-num">1</div>
+          <div>افتح <strong>barq_admin_bark.html</strong> وسجّل الدخول بنفس البريد وكلمة المرور</div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div>من لوحة التحكم أضف <strong>الفروع</strong> ثم <strong>المستخدمين</strong></div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div>وزّع <strong>barq_system_v30_bark.html</strong> على موظفي الفروع — كل واحد يدخل بحسابه</div>
+        </li>
+        <li>
+          <div class="step-num">4</div>
+          <div>طبّق <strong>Security Rules</strong> من داخل لوحة التحكم ← صفحة Firebase Rules</div>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

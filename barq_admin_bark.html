@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ لوحة تحكم البرق - المدير</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- Firebase SDK v10 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, deleteDoc, writeBatch, query, where, orderBy, serverTimestamp, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    // ======================================================
+    // 🔐 إعدادات Firebase - يتم تحميلها من ملف محمي
+    // ======================================================
+    let firebaseConfig = null;
+    
+    // ✅ إعدادات مشروع bark الحقيقية
+    const BARK_CONFIG = {
+      apiKey: "AIzaSyClliyCsXUV0sq89y6BfoYNUWCMBB8aFH8",
+      authDomain: "bark-44676.firebaseapp.com",
+      projectId: "bark-44676",
+      storageBucket: "bark-44676.firebasestorage.app",
+      messagingSenderId: "310662661096",
+      appId: "1:310662661096:web:668be5d0fe292075601a5d",
+      measurementId: "G-Y9T34HW1X4"
+    };
+
+    // محاولة تحميل الإعدادات من localStorage (تُحفظ مرة واحدة فقط)
+    try {
+      const raw = localStorage.getItem('barq_admin_firebase_config');
+      if (raw) firebaseConfig = JSON.parse(raw);
+    } catch {}
+    
+    // إذا لم توجد إعدادات محفوظة، استخدم الإعدادات المضمّنة
+    if (!firebaseConfig) firebaseConfig = BARK_CONFIG;
+
+    window._firebaseInit = async function(config) {
+      try {
+        firebaseConfig = config;
+        localStorage.setItem('barq_admin_firebase_config', JSON.stringify(config));
+        const app = initializeApp(config);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        window.db = db;
+        window.auth = auth;
+        window.FM = { collection, doc, setDoc, getDoc, getDocs, onSnapshot, deleteDoc, writeBatch, query, where, orderBy, serverTimestamp, updateDoc, addDoc, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail };
+        window.dispatchEvent(new Event('firebaseReady'));
+        return true;
+      } catch(e) {
+        console.error(e);
+        return false;
+      }
+    };
+
+    // الإعدادات دائماً متوفرة (مضمّنة في الكود)
+    window._firebaseInit(firebaseConfig);
+  </script>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg: #030a14;
+      --surface: rgba(255,255,255,0.06);
+      --surface2: rgba(255,255,255,0.10);
+      --border: rgba(255,255,255,0.12);
+      --border2: rgba(255,255,255,0.22);
+      --blue: #63a5ff;
+      --blue-glow: rgba(99,165,255,0.3);
+      --green: #34d399;
+      --red: #fb7185;
+      --amber: #fbbf24;
+      --violet: #a78bfa;
+      --text: rgba(255,255,255,0.92);
+      --text2: rgba(255,255,255,0.55);
+      --text3: rgba(255,255,255,0.35);
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      direction: rtl;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 20% 10%, rgba(99,165,255,0.08) 0%, transparent 60%),
+                  radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== LAYOUT ===== */
+    .layout { display:flex; min-height:100vh; position:relative; z-index:1; }
+    
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 260px;
+      background: rgba(255,255,255,0.04);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sidebar-logo .icon { font-size: 32px; }
+    .sidebar-logo .title { font-size: 18px; font-weight: 900; color: var(--blue); }
+    .sidebar-logo .sub { font-size: 11px; color: var(--text3); margin-top:2px; }
+    
+    .sidebar-nav { flex:1; padding: 12px 0; }
+    .nav-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text3);
+      letter-spacing: 1.5px;
+      padding: 16px 20px 6px;
+      text-transform: uppercase;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text2);
+      border-right: 3px solid transparent;
+      margin: 1px 0;
+    }
+    .nav-item:hover { background: var(--surface); color: var(--text); }
+    .nav-item.active {
+      background: rgba(99,165,255,0.1);
+      color: var(--blue);
+      border-right-color: var(--blue);
+    }
+    .nav-item i { font-size: 18px; width: 20px; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+    .user-avatar {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--blue), var(--violet));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 900; color: white;
+    }
+    .user-info .name { font-size: 13px; font-weight: 700; }
+    .user-info .role { font-size: 11px; color: var(--text3); }
+    
+    .btn-signout {
+      width: 100%;
+      padding: 9px;
+      background: rgba(251,113,133,0.1);
+      border: 1px solid rgba(251,113,133,0.25);
+      color: var(--red);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-signout:hover { background: rgba(251,113,133,0.2); }
+
+    /* ===== MAIN CONTENT ===== */
+    .main { margin-right: 260px; flex:1; padding: 28px 32px; }
+    
+    .page-header {
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .page-title { font-size: 24px; font-weight: 900; }
+    .page-sub { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+    /* ===== CARDS ===== */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -20px; left: -20px;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      opacity: 0.15;
+    }
+    .stat-card.blue::before { background: var(--blue); }
+    .stat-card.green::before { background: var(--green); }
+    .stat-card.red::before { background: var(--red); }
+    .stat-card.violet::before { background: var(--violet); }
+    .stat-card.amber::before { background: var(--amber); }
+    .stat-label { font-size: 12px; color: var(--text2); font-weight: 600; margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 900; }
+    .stat-value.blue { color: var(--blue); }
+    .stat-value.green { color: var(--green); }
+    .stat-value.red { color: var(--red); }
+    .stat-value.violet { color: var(--violet); }
+    .stat-value.amber { color: var(--amber); }
+    .stat-icon { position:absolute; top:16px; left:16px; font-size: 28px; opacity: 0.4; }
+
+    /* ===== TABLE ===== */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-title { font-size: 16px; font-weight: 800; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text3);
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 14px 16px; font-size: 14px; }
+
+    /* ===== BADGES ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge.green { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+    .badge.red { background: rgba(251,113,133,0.15); color: var(--red); border: 1px solid rgba(251,113,133,0.3); }
+    .badge.blue { background: rgba(99,165,255,0.15); color: var(--blue); border: 1px solid rgba(99,165,255,0.3); }
+    .badge.amber { background: rgba(251,191,36,0.15); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+    .badge.violet { background: rgba(167,139,250,0.15); color: var(--violet); border: 1px solid rgba(167,139,250,0.3); }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      padding: 9px 18px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: rgba(99,165,255,0.2); border: 1px solid rgba(99,165,255,0.4); color: var(--blue); }
+    .btn-primary:hover { background: rgba(99,165,255,0.3); }
+    .btn-success { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.35); color: var(--green); }
+    .btn-success:hover { background: rgba(52,211,153,0.25); }
+    .btn-danger { background: rgba(251,113,133,0.15); border: 1px solid rgba(251,113,133,0.35); color: var(--red); }
+    .btn-danger:hover { background: rgba(251,113,133,0.25); }
+    .btn-warning { background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.35); color: var(--amber); }
+    .btn-warning:hover { background: rgba(251,191,36,0.25); }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+    /* ===== FORMS ===== */
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 6px; display: block; }
+    .form-control {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: var(--blue); }
+    .form-control::placeholder { color: var(--text3); }
+    select.form-control option { background: #1a2535; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal {
+      background: #0d1826;
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title { font-size: 16px; font-weight: 800; }
+    .modal-body { padding: 24px; }
+    .modal-close {
+      width: 32px; height: 32px;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      border-radius: 8px;
+      color: var(--text2);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    .modal-close:hover { background: rgba(251,113,133,0.2); color: var(--red); }
+
+    /* ===== LOGIN ===== */
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border2);
+      border-radius: 24px;
+      padding: 40px 36px;
+    }
+    .login-logo { text-align: center; margin-bottom: 32px; }
+    .login-logo .emoji { font-size: 52px; }
+    .login-logo h1 { font-size: 22px; font-weight: 900; color: var(--blue); margin-top: 8px; }
+    .login-logo p { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+    /* ===== CONFIG SCREEN ===== */
+    .config-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .config-box {
+      width: 100%;
+      max-width: 560px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border2);
+      border-radius: 24px;
+      padding: 36px;
+    }
+
+    /* ===== TABS ===== */
+    .tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: 12px; margin-bottom: 24px; }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active { background: var(--surface2); color: var(--blue); }
+
+    /* ===== ALERTS ===== */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .alert-success { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25); color: var(--green); }
+    .alert-error { background: rgba(251,113,133,0.1); border: 1px solid rgba(251,113,133,0.25); color: var(--red); }
+    .alert-info { background: rgba(99,165,255,0.1); border: 1px solid rgba(99,165,255,0.25); color: var(--blue); }
+
+    /* ===== TOAST ===== */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(20,30,50,0.95);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 12px 22px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      z-index: 9999;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      backdrop-filter: blur(20px);
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ===== LOADING ===== */
+    .loading-spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(99,165,255,0.2);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 40px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== GRID ===== */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; height: auto; position: static; }
+      .main { margin-right: 0; padding: 16px; }
+      .layout { flex-direction: column; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ===== PAGES ===== */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ===== BRANCH CARD ===== */
+    .branch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 16px; }
+    .branch-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+    .branch-card:hover { border-color: var(--border2); background: var(--surface2); }
+    .branch-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .branch-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: rgba(99,165,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .branch-name { font-size: 16px; font-weight: 800; }
+    .branch-city { font-size: 12px; color: var(--text3); }
+    .branch-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .branch-stat { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px 12px; }
+    .branch-stat-label { font-size: 10px; color: var(--text3); font-weight: 700; }
+    .branch-stat-value { font-size: 16px; font-weight: 900; color: var(--blue); margin-top: 2px; }
+    .branch-actions { display: flex; gap: 8px; margin-top: 14px; }
+
+    /* ===== ACTIVITY LOG ===== */
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .activity-dot.green { background: var(--green); }
+    .activity-dot.blue { background: var(--blue); }
+    .activity-dot.red { background: var(--red); }
+    .activity-dot.amber { background: var(--amber); }
+    .activity-text { font-size: 13px; line-height: 1.5; }
+    .activity-time { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text3);
+    }
+    .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; opacity: 0.4; }
+    .empty-state p { font-size: 14px; }
+
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+    
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .info-item {
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .info-item-label { font-size: 11px; color: var(--text3); font-weight: 700; margin-bottom: 4px; }
+    .info-item-value { font-size: 15px; font-weight: 800; }
+
+    .permission-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .permission-row:last-child { border-bottom: none; }
+    .permission-name { font-size: 13px; font-weight: 700; }
+    .permission-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle.on { background: var(--green); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; right: 3px;
+      width: 18px; height: 18px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle.on::after { transform: translateX(-20px); }
+  </style>
+</head>
+<body>
+
+<div id="toast">✓ تم</div>
+
+<!-- ===== CONFIG SCREEN ===== -->
+<div id="configScreen" class="config-screen" style="display:none;">
+  <div class="config-box">
+    <div style="text-align:center; margin-bottom:28px;">
+      <div style="font-size:48px;">⚡</div>
+      <h1 style="font-size:20px; font-weight:900; color:var(--blue); margin-top:8px;">إعداد Firebase</h1>
+      <p style="font-size:13px; color:var(--text3); margin-top:6px;">أدخل إعدادات مشروعك لمرة واحدة فقط</p>
+    </div>
+
+    <div class="alert alert-info">
+      <i class="ph ph-info"></i>
+      الإعدادات محفوظة محلياً ومشفرة — لا يراها أحد غيرك
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">API Key</label>
+      <input type="text" class="form-control" id="cfg_apiKey" placeholder="AIzaSy...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Auth Domain</label>
+      <input type="text" class="form-control" id="cfg_authDomain" placeholder="your-project.firebaseapp.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Project ID</label>
+      <input type="text" class="form-control" id="cfg_projectId" placeholder="your-project-id">
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Storage Bucket</label>
+        <input type="text" class="form-control" id="cfg_storageBucket" placeholder="your-project.appspot.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Messaging Sender ID</label>
+        <input type="text" class="form-control" id="cfg_messagingSenderId" placeholder="123456789">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">App ID</label>
+      <input type="text" class="form-control" id="cfg_appId" placeholder="1:123:web:abc...">
+    </div>
+
+    <div id="cfgError" style="display:none;" class="alert alert-error">
+      <i class="ph ph-warning"></i>
+      <span id="cfgErrorText"></span>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%; justify-content:center; padding:13px;" onclick="saveConfig()">
+      <i class="ph ph-floppy-disk"></i> حفظ الإعدادات والمتابعة
+    </button>
+
+    <div style="text-align:center; margin-top:16px;">
+      <a href="#" onclick="showConfigHelp()" style="font-size:12px; color:var(--text3); text-decoration:none;">
+        <i class="ph ph-question"></i> كيف أحصل على هذه البيانات؟
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen" class="login-screen" style="display:none;">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="emoji">⚡</div>
+      <h1>لوحة تحكم البرق</h1>
+      <p>تسجيل دخول المدير العام</p>
+    </div>
+
+    <div id="loginError" style="display:none;" class="alert alert-error">
+      <i class="ph ph-warning"></i>
+      <span id="loginErrorText"></span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">البريد الإلكتروني</label>
+      <input type="email" class="form-control" id="loginEmail" placeholder="admin@barq.com" dir="ltr">
+    </div>
+    <div class="form-group">
+      <label class="form-label">كلمة المرور</label>
+      <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" dir="ltr">
+    </div>
+
+    <button class="btn btn-primary" style="width:100%; justify-content:center; padding:13px; margin-top:4px;" onclick="doLogin()">
+      <i class="ph ph-sign-in"></i> تسجيل الدخول
+    </button>
+
+    <div style="text-align:center; margin-top:16px;">
+      <a href="#" onclick="doForgotPassword()" style="font-size:12px; color:var(--text3); text-decoration:none;">
+        نسيت كلمة المرور؟
+      </a>
+    </div>
+
+    <div class="divider"></div>
+    <button onclick="resetConfig()" style="width:100%; padding:9px; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--text3); border-radius:10px; cursor:pointer; font-family:'Cairo',sans-serif; font-size:12px;">
+      <i class="ph ph-gear-six"></i> تغيير إعدادات Firebase
+    </button>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="appScreen" class="layout" style="display:none;">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="icon">⚡</span>
+      <div>
+        <div class="title">البرق Admin</div>
+        <div class="sub">لوحة التحكم الرئيسية</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">عام</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <i class="ph ph-chart-pie"></i> لوحة التحكم
+      </div>
+      <div class="nav-item" onclick="showPage('branches')">
+        <i class="ph ph-buildings"></i> الفروع
+      </div>
+
+      <div class="nav-section-title">إدارة</div>
+      <div class="nav-item" onclick="showPage('users')">
+        <i class="ph ph-users"></i> المستخدمون
+      </div>
+      <div class="nav-item" onclick="showPage('permissions')">
+        <i class="ph ph-shield-check"></i> الصلاحيات
+      </div>
+
+      <div class="nav-section-title">تقارير</div>
+      <div class="nav-item" onclick="showPage('reports')">
+        <i class="ph ph-chart-bar"></i> التقارير
+      </div>
+      <div class="nav-item" onclick="showPage('activity')">
+        <i class="ph ph-clock-counter-clockwise"></i> سجل الأحداث
+      </div>
+
+      <div class="nav-section-title">الإعدادات</div>
+      <div class="nav-item" onclick="showPage('settings')">
+        <i class="ph ph-gear-six"></i> الإعدادات
+      </div>
+      <div class="nav-item" onclick="showPage('firebaseRules')">
+        <i class="ph ph-lock"></i> Firebase Rules
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-badge">
+        <div class="user-avatar" id="sidebarAvatar">م</div>
+        <div class="user-info">
+          <div class="name" id="sidebarName">المدير</div>
+          <div class="role">Super Admin ⚡</div>
+        </div>
+      </div>
+      <button class="btn-signout" onclick="doSignout()">
+        <i class="ph ph-sign-out"></i> تسجيل الخروج
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">🎯 لوحة التحكم</div>
+          <div class="page-sub" id="dashGreeting">مرحباً بك!</div>
+        </div>
+        <button class="btn btn-primary" onclick="loadDashboard()">
+          <i class="ph ph-arrows-clockwise"></i> تحديث
+        </button>
+      </div>
+
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card blue">
+          <div class="stat-label">إجمالي الفروع</div>
+          <div class="stat-value blue" id="stat-branches">-</div>
+          <div class="stat-icon">🏢</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">المستخدمون النشطون</div>
+          <div class="stat-value green" id="stat-users">-</div>
+          <div class="stat-icon">👥</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">إجمالي المبيعات</div>
+          <div class="stat-value amber" id="stat-sales">-</div>
+          <div class="stat-icon">💰</div>
+        </div>
+        <div class="stat-card violet">
+          <div class="stat-label">إجمالي المنتجات</div>
+          <div class="stat-value violet" id="stat-products">-</div>
+          <div class="stat-icon">📦</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">الديون المستحقة</div>
+          <div class="stat-value red" id="stat-debts">-</div>
+          <div class="stat-icon">⚠️</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 أداء الفروع</div>
+          </div>
+          <div id="branchPerfTable" style="padding:8px;">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🕐 آخر النشاطات</div>
+          </div>
+          <div id="recentActivity" style="padding:0 16px;">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== BRANCHES PAGE ===== -->
+    <div id="page-branches" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">🏢 إدارة الفروع</div>
+          <div class="page-sub">عرض وإدارة جميع الفروع</div>
+        </div>
+        <button class="btn btn-success" onclick="openAddBranch()">
+          <i class="ph ph-plus"></i> إضافة فرع
+        </button>
+      </div>
+
+      <div id="branchGrid" class="branch-grid">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+
+    <!-- ===== USERS PAGE ===== -->
+    <div id="page-users" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">👥 إدارة المستخدمين</div>
+          <div class="page-sub">إدارة حسابات المستخدمين وصلاحياتهم</div>
+        </div>
+        <button class="btn btn-success" onclick="openAddUser()">
+          <i class="ph ph-user-plus"></i> إضافة مستخدم
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">قائمة المستخدمين</div>
+          <input type="text" class="form-control" id="userSearch" placeholder="🔍 بحث..." style="width:220px;" oninput="filterUsers()">
+        </div>
+        <div style="overflow-x:auto;">
+          <table id="usersTable">
+            <thead>
+              <tr>
+                <th>المستخدم</th>
+                <th>البريد</th>
+                <th>الفرع</th>
+                <th>الدور</th>
+                <th>الحالة</th>
+                <th>آخر دخول</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="7"><div class="loading-spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PERMISSIONS PAGE ===== -->
+    <div id="page-permissions" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">🛡️ إدارة الصلاحيات</div>
+          <div class="page-sub">تحديد صلاحيات كل دور</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 2fr; gap:20px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">الأدوار</div></div>
+          <div style="padding:8px;">
+            <div class="nav-item active" id="role-admin" onclick="selectRole('admin')">
+              <i class="ph ph-crown"></i> المدير العام
+            </div>
+            <div class="nav-item" id="role-manager" onclick="selectRole('manager')">
+              <i class="ph ph-briefcase"></i> مدير الفرع
+            </div>
+            <div class="nav-item" id="role-cashier" onclick="selectRole('cashier')">
+              <i class="ph ph-cash-register"></i> كاشير
+            </div>
+            <div class="nav-item" id="role-viewer" onclick="selectRole('viewer')">
+              <i class="ph ph-eye"></i> مراقب فقط
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title" id="permissionsTitle">صلاحيات المدير العام</div>
+            <button class="btn btn-primary btn-sm" onclick="savePermissions()">
+              <i class="ph ph-floppy-disk"></i> حفظ
+            </button>
+          </div>
+          <div style="padding:16px;" id="permissionsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REPORTS PAGE ===== -->
+    <div id="page-reports" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">📊 التقارير</div>
+          <div class="page-sub">تقارير شاملة لجميع الفروع</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="date" class="form-control" id="reportFrom" style="width:160px;">
+          <span style="color:var(--text3);">إلى</span>
+          <input type="date" class="form-control" id="reportTo" style="width:160px;">
+          <button class="btn btn-primary" onclick="generateReport()">
+            <i class="ph ph-magnifying-glass"></i> تحليل
+          </button>
+        </div>
+      </div>
+
+      <div class="stat-grid" id="reportStats">
+        <div style="text-align:center; padding:40px; color:var(--text3); grid-column:1/-1;">
+          اختر الفترة الزمنية وانقر "تحليل"
+        </div>
+      </div>
+
+      <div class="card" id="reportTable" style="display:none;">
+        <div class="card-header"><div class="card-title">تقرير مفصّل بالفروع</div></div>
+        <div style="overflow-x:auto;" id="reportTableContent"></div>
+      </div>
+    </div>
+
+    <!-- ===== ACTIVITY PAGE ===== -->
+    <div id="page-activity" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">🕐 سجل الأحداث</div>
+          <div class="page-sub">تتبع جميع العمليات في النظام</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="clearActivityLog()">
+          <i class="ph ph-trash"></i> مسح السجل
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">آخر الأحداث</div>
+          <select class="form-control" id="activityFilter" style="width:180px;" onchange="loadActivity()">
+            <option value="">كل الأنواع</option>
+            <option value="login">تسجيل دخول</option>
+            <option value="sale">مبيعات</option>
+            <option value="product">منتجات</option>
+            <option value="user">مستخدمون</option>
+          </select>
+        </div>
+        <div style="padding:0 16px;" id="activityList">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS PAGE ===== -->
+    <div id="page-settings" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">⚙️ الإعدادات</div>
+          <div class="page-sub">إعدادات النظام العامة</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">إعدادات النظام</div></div>
+          <div style="padding:20px;">
+            <div class="form-group">
+              <label class="form-label">اسم الشركة</label>
+              <input type="text" class="form-control" id="set_companyName" placeholder="نظام البرق">
+            </div>
+            <div class="form-group">
+              <label class="form-label">العملة</label>
+              <select class="form-control" id="set_currency">
+                <option value="ريال">ريال سعودي</option>
+                <option value="درهم">درهم إماراتي</option>
+                <option value="دينار">دينار كويتي</option>
+                <option value="جنيه">جنيه مصري</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">المنطقة الزمنية</label>
+              <select class="form-control" id="set_timezone">
+                <option value="Asia/Riyadh">الرياض (GMT+3)</option>
+                <option value="Asia/Dubai">دبي (GMT+4)</option>
+                <option value="Africa/Cairo">القاهرة (GMT+2)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()" style="width:100%; justify-content:center;">
+              <i class="ph ph-floppy-disk"></i> حفظ الإعدادات
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">إعدادات Firebase</div></div>
+          <div style="padding:20px;">
+            <div class="alert alert-info">
+              <i class="ph ph-shield-check"></i>
+              إعداداتك الحالية محفوظة ومشفرة
+            </div>
+            <div class="form-group">
+              <label class="form-label">Project ID الحالي</label>
+              <input type="text" class="form-control" id="currentProjectId" readonly style="opacity:0.6;">
+            </div>
+            <div style="display:flex; gap:10px; flex-direction:column; margin-top:8px;">
+              <button class="btn btn-warning" onclick="resetConfig()" style="width:100%; justify-content:center;">
+                <i class="ph ph-pencil-simple"></i> تغيير إعدادات Firebase
+              </button>
+              <button class="btn btn-danger" onclick="clearAllConfig()" style="width:100%; justify-content:center;">
+                <i class="ph ph-trash"></i> حذف كل البيانات المحلية
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FIREBASE RULES PAGE ===== -->
+    <div id="page-firebaseRules" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">🔐 Firebase Security Rules</div>
+          <div class="page-sub">قواعد الحماية والأمان</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Firestore Rules — انسخها والصقها في Firebase Console</div>
+          <button class="btn btn-primary btn-sm" onclick="copyRules()">
+            <i class="ph ph-copy"></i> نسخ
+          </button>
+        </div>
+        <div style="padding:20px;">
+          <pre id="rulesCode" style="background:rgba(0,0,0,0.3); padding:20px; border-radius:12px; font-size:12px; color:var(--green); overflow-x:auto; white-space:pre-wrap; line-height:1.7; font-family:monospace; direction:ltr; text-align:left;">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ✅ دالة للتحقق من تسجيل الدخول
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // ✅ دالة للتحقق من دور المدير العام
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // ✅ دالة للتحقق من مدير الفرع
+    function isBranchManager(branchId) {
+      return isAuthenticated() && (
+        isSuperAdmin() ||
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.branchId == branchId &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'manager'])
+      );
+    }
+    
+    // ✅ التحقق من أن المستخدم ينتمي للفرع
+    function belongsToBranch(branchId) {
+      return isAuthenticated() && (
+        isSuperAdmin() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.branchId == branchId
+      );
+    }
+
+    // 🔒 إعدادات النظام — المدير العام فقط
+    match /system/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // 🔒 بيانات المستخدمين
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperAdmin());
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin() || request.auth.uid == userId;
+      allow delete: if isSuperAdmin();
+    }
+
+    // 🔒 بيانات الفروع
+    match /branches/{branchId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // 🔒 صلاحيات الأدوار — المدير العام فقط
+    match /roles/{roleId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+    
+    // 🔒 سجل الأحداث
+    match /activityLog/{logId} {
+      allow read: if isSuperAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // 🔒 بيانات كل فرع (مبيعات، مخزون، عملاء...)
+    match /branches/{branchId}/{collection}/{docId} {
+      allow read: if belongsToBranch(branchId);
+      allow write: if belongsToBranch(branchId);
+    }
+    
+    // 🔒 التقارير الموحدة
+    match /reports/{reportId} {
+      allow read, write: if isSuperAdmin();
+    }
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:0;">
+        <div class="card-header"><div class="card-title">📋 خطوات تفعيل القواعد</div></div>
+        <div style="padding:20px;">
+          <div style="counter-reset:steps;">
+            <div style="display:flex; gap:16px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border);">
+              <div style="width:28px;height:28px;background:rgba(99,165,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--blue);font-size:13px;flex-shrink:0;">1</div>
+              <div><div style="font-weight:700; font-size:14px;">افتح Firebase Console</div><div style="font-size:12px;color:var(--text3);margin-top:3px;">console.firebase.google.com → مشروعك</div></div>
+            </div>
+            <div style="display:flex; gap:16px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border);">
+              <div style="width:28px;height:28px;background:rgba(99,165,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--blue);font-size:13px;flex-shrink:0;">2</div>
+              <div><div style="font-weight:700; font-size:14px;">Firestore Database → Rules</div><div style="font-size:12px;color:var(--text3);margin-top:3px;">من القائمة الجانبية اختر Firestore ثم تبويب Rules</div></div>
+            </div>
+            <div style="display:flex; gap:16px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border);">
+              <div style="width:28px;height:28px;background:rgba(99,165,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--blue);font-size:13px;flex-shrink:0;">3</div>
+              <div><div style="font-weight:700; font-size:14px;">الصق القواعد أعلاه</div><div style="font-size:12px;color:var(--text3);margin-top:3px;">استبدل المحتوى الافتراضي بالقواعد المنسوخة</div></div>
+            </div>
+            <div style="display:flex; gap:16px; align-items:flex-start; padding:12px 0;">
+              <div style="width:28px;height:28px;background:rgba(52,211,153,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);font-size:13px;flex-shrink:0;">4</div>
+              <div><div style="font-weight:700; font-size:14px;">Publish</div><div style="font-size:12px;color:var(--text3);margin-top:3px;">انقر "Publish" وانتهيت ✓</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Add Branch Modal -->
+<div id="modalAddBranch" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏢 إضافة فرع جديد</div>
+      <button class="modal-close" onclick="closeModal('modalAddBranch')"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">اسم الفرع *</label>
+        <input type="text" class="form-control" id="branch_name" placeholder="فرع الرياض">
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">المدينة</label>
+          <input type="text" class="form-control" id="branch_city" placeholder="الرياض">
+        </div>
+        <div class="form-group">
+          <label class="form-label">رقم الهاتف</label>
+          <input type="text" class="form-control" id="branch_phone" placeholder="05xxxxxxxx" dir="ltr">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">العنوان</label>
+        <input type="text" class="form-control" id="branch_address" placeholder="شارع التحلية، حي...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الحالة</label>
+        <select class="form-control" id="branch_status">
+          <option value="active">نشط</option>
+          <option value="inactive">غير نشط</option>
+        </select>
+      </div>
+      <button class="btn btn-success" style="width:100%; justify-content:center; padding:13px;" onclick="saveBranch()">
+        <i class="ph ph-buildings"></i> إنشاء الفرع
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div id="modalAddUser" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👤 إضافة مستخدم جديد</div>
+      <button class="modal-close" onclick="closeModal('modalAddUser')"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="tabs" id="addUserTabs">
+        <button class="tab-btn active" onclick="switchAddUserTab('create')">إنشاء حساب جديد</button>
+        <button class="tab-btn" onclick="switchAddUserTab('existing')">إضافة موجود</button>
+      </div>
+
+      <div id="addUserCreate">
+        <div class="form-group">
+          <label class="form-label">الاسم الكامل *</label>
+          <input type="text" class="form-control" id="user_name" placeholder="محمد أحمد">
+        </div>
+        <div class="form-group">
+          <label class="form-label">البريد الإلكتروني *</label>
+          <input type="email" class="form-control" id="user_email" placeholder="user@barq.com" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">كلمة المرور *</label>
+          <input type="password" class="form-control" id="user_password" placeholder="8 أحرف على الأقل" dir="ltr">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">الفرع</label>
+            <select class="form-control" id="user_branch"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">الدور</label>
+            <select class="form-control" id="user_role">
+              <option value="cashier">كاشير</option>
+              <option value="manager">مدير فرع</option>
+              <option value="viewer">مراقب</option>
+              <option value="admin">مدير عام</option>
+            </select>
+          </div>
+        </div>
+        <div id="addUserError" style="display:none;" class="alert alert-error"><i class="ph ph-warning"></i><span id="addUserErrorText"></span></div>
+        <button class="btn btn-success" style="width:100%; justify-content:center; padding:13px;" onclick="saveUser()">
+          <i class="ph ph-user-plus"></i> إنشاء الحساب
+        </button>
+      </div>
+
+      <div id="addUserExisting" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">UID المستخدم</label>
+          <input type="text" class="form-control" id="user_uid" placeholder="abc123..." dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">الاسم</label>
+          <input type="text" class="form-control" id="user_existing_name" placeholder="اسم المستخدم">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">الفرع</label>
+            <select class="form-control" id="user_existing_branch"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">الدور</label>
+            <select class="form-control" id="user_existing_role">
+              <option value="cashier">كاشير</option>
+              <option value="manager">مدير فرع</option>
+              <option value="viewer">مراقب</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%; justify-content:center; padding:13px;" onclick="saveExistingUser()">
+          <i class="ph ph-link"></i> ربط المستخدم
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Config Help Modal -->
+<div id="modalConfigHelp" class="modal-overlay" style="display:none;">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title">❓ كيف أحصل على إعدادات Firebase؟</div>
+      <button class="modal-close" onclick="closeModal('modalConfigHelp')"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; gap:12px;">
+          <div style="width:32px;height:32px;background:rgba(99,165,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--blue);flex-shrink:0;">1</div>
+          <div><strong>افتح</strong> <a href="https://console.firebase.google.com" target="_blank" style="color:var(--blue);">console.firebase.google.com</a></div>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <div style="width:32px;height:32px;background:rgba(99,165,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--blue);flex-shrink:0;">2</div>
+          <div>أنشئ مشروعاً جديداً أو افتح مشروعاً موجوداً</div>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <div style="width:32px;height:32px;background:rgba(99,165,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--blue);flex-shrink:0;">3</div>
+          <div>اضغط على <strong>Project Settings ⚙️</strong> (أيقونة الترس بجانب اسم المشروع)</div>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <div style="width:32px;height:32px;background:rgba(99,165,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--blue);flex-shrink:0;">4</div>
+          <div>في قسم <strong>"Your apps"</strong> أضف تطبيق <strong>Web (&lt;/&gt;)</strong></div>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <div style="width:32px;height:32px;background:rgba(52,211,153,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);flex-shrink:0;">5</div>
+          <div>ستظهر لك <strong>firebaseConfig</strong> — انسخ كل قيمة وضعها هنا ✓</div>
+        </div>
+        <div class="alert alert-info">
+          <i class="ph ph-info"></i>
+          تأكد من تفعيل <strong>Firestore</strong> و <strong>Authentication → Email/Password</strong> في مشروعك
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+let currentPage = 'dashboard';
+let branches = [];
+let users = [];
+let currentUser = null;
+let selectedRole = 'admin';
+let permissions = {
+  admin: { sales:true, inventory:true, customers:true, reports:true, settings:true, users:true, branches:true },
+  manager: { sales:true, inventory:true, customers:true, reports:true, settings:false, users:false, branches:false },
+  cashier: { sales:true, inventory:false, customers:true, reports:false, settings:false, users:false, branches:false },
+  viewer: { sales:false, inventory:false, customers:false, reports:true, settings:false, users:false, branches:false }
+};
+
+const permissionLabels = {
+  sales: { name: 'المبيعات والفواتير', desc: 'إضافة وتعديل وحذف المبيعات' },
+  inventory: { name: 'المخزون', desc: 'إدارة المنتجات والمخزون' },
+  customers: { name: 'العملاء', desc: 'إدارة بيانات العملاء' },
+  reports: { name: 'التقارير', desc: 'عرض التقارير والإحصائيات' },
+  settings: { name: 'الإعدادات', desc: 'تعديل إعدادات النظام' },
+  users: { name: 'المستخدمون', desc: 'إدارة الحسابات' },
+  branches: { name: 'الفروع', desc: 'إدارة الفروع' }
+};
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  // Firebase مربوط مباشرة — لا نحتاج شاشة الإعداد
+  showScreen('login');
+});
+
+window.addEventListener('firebaseReady', () => {
+  setupAuthListener();
+});
+
+function setupAuthListener() {
+  const { onAuthStateChanged } = window.FM;
+  onAuthStateChanged(window.auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      await verifyAdminRole(user);
+    } else {
+      showScreen('login');
+    }
+  });
+}
+
+async function verifyAdminRole(user) {
+  try {
+    const { doc, getDoc } = window.FM;
+    const userDoc = await getDoc(doc(window.db, 'users', user.uid));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      if (data.role === 'admin') {
+        showScreen('app');
+        document.getElementById('sidebarName').textContent = data.name || user.email;
+        document.getElementById('sidebarAvatar').textContent = (data.name || user.email)[0].toUpperCase();
+        document.getElementById('dashGreeting').textContent = `مرحباً، ${data.name || 'المدير'}! 👋`;
+        loadDashboard();
+        loadBranches();
+        loadUsers();
+        loadPermissionsFromDB();
+        loadSettings();
+        loadActivity();
+        renderPermissions();
+      } else {
+        await window.FM.signOut(window.auth);
+        showLoginError('ليس لديك صلاحية الوصول للوحة التحكم');
+        showScreen('login');
+      }
+    } else {
+      // First admin — create record
+      const { setDoc, doc, serverTimestamp } = window.FM;
+      await setDoc(doc(window.db, 'users', user.uid), {
+        name: user.displayName || 'المدير العام',
+        email: user.email,
+        role: 'admin',
+        branchId: 'all',
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp(),
+        status: 'active'
+      });
+      showScreen('app');
+      document.getElementById('sidebarName').textContent = user.displayName || user.email;
+      document.getElementById('sidebarAvatar').textContent = (user.displayName || user.email)[0].toUpperCase();
+      loadDashboard();
+    }
+  } catch(e) {
+    console.error(e);
+    showScreen('login');
+  }
+}
+
+// ============================================================
+// SCREEN MANAGEMENT
+// ============================================================
+function showScreen(screen) {
+  document.getElementById('configScreen').style.display = screen === 'config' ? 'flex' : 'none';
+  document.getElementById('loginScreen').style.display = screen === 'login' ? 'flex' : 'none';
+  document.getElementById('appScreen').style.display = screen === 'app' ? 'flex' : 'none';
+}
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  currentPage = page;
+}
+
+// ============================================================
+// CONFIG
+// ============================================================
+function saveConfig() {
+  const config = {
+    apiKey: document.getElementById('cfg_apiKey').value.trim(),
+    authDomain: document.getElementById('cfg_authDomain').value.trim(),
+    projectId: document.getElementById('cfg_projectId').value.trim(),
+    storageBucket: document.getElementById('cfg_storageBucket').value.trim(),
+    messagingSenderId: document.getElementById('cfg_messagingSenderId').value.trim(),
+    appId: document.getElementById('cfg_appId').value.trim()
+  };
+  if (!config.apiKey || !config.projectId) {
+    document.getElementById('cfgError').style.display = 'flex';
+    document.getElementById('cfgErrorText').textContent = 'يرجى ملء API Key و Project ID على الأقل';
+    return;
+  }
+  window._firebaseInit(config).then(ok => {
+    if (ok) {
+      showScreen('login');
+      toast('✅ تم حفظ إعدادات Firebase');
+      setupAuthListener();
+    } else {
+      document.getElementById('cfgError').style.display = 'flex';
+      document.getElementById('cfgErrorText').textContent = 'فشل الاتصال — تأكد من صحة البيانات';
+    }
+  });
+}
+
+function resetConfig() {
+  if (confirm('هل تريد تغيير إعدادات Firebase؟ ستحتاج لتسجيل الدخول مجدداً')) {
+    localStorage.removeItem('barq_admin_firebase_config');
+    location.reload();
+  }
+}
+
+function clearAllConfig() {
+  if (confirm('⚠️ تحذير: سيتم حذف كل البيانات المحلية. هل أنت متأكد؟')) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+function showConfigHelp() {
+  document.getElementById('modalConfigHelp').style.display = 'flex';
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) { showLoginError('يرجى ملء جميع الحقول'); return; }
+  try {
+    await window.FM.signInWithEmailAndPassword(window.auth, email, password);
+    document.getElementById('loginError').style.display = 'none';
+  } catch(e) {
+    const msgs = {
+      'auth/user-not-found': 'البريد الإلكتروني غير مسجل',
+      'auth/wrong-password': 'كلمة المرور غير صحيحة',
+      'auth/invalid-credential': 'بيانات الدخول غير صحيحة',
+      'auth/too-many-requests': 'محاولات كثيرة — حاول لاحقاً'
+    };
+    showLoginError(msgs[e.code] || e.message);
+  }
+}
+
+function showLoginError(msg) {
+  document.getElementById('loginError').style.display = 'flex';
+  document.getElementById('loginErrorText').textContent = msg;
+}
+
+async function doForgotPassword() {
+  const email = document.getElementById('loginEmail').value.trim();
+  if (!email) { showLoginError('أدخل البريد الإلكتروني أولاً'); return; }
+  try {
+    await window.FM.sendPasswordResetEmail(window.auth, email);
+    toast('📧 تم إرسال رابط استعادة كلمة المرور');
+  } catch(e) { showLoginError(e.message); }
+}
+
+async function doSignout() {
+  await window.FM.signOut(window.auth);
+  toast('👋 تم تسجيل الخروج');
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function loadDashboard() {
+  try {
+    const { collection, getDocs, query, orderBy } = window.FM;
+    const db = window.db;
+
+    // Branches count
+    const branchSnap = await getDocs(collection(db, 'branches'));
+    document.getElementById('stat-branches').textContent = branchSnap.size;
+
+    // Users count
+    const userSnap = await getDocs(collection(db, 'users'));
+    document.getElementById('stat-users').textContent = userSnap.size;
+
+    // Aggregate sales from all branches
+    let totalSales = 0, totalProducts = 0, totalDebts = 0;
+    for (const branchDoc of branchSnap.docs) {
+      try {
+        const transSnap = await getDocs(collection(db, 'branches', branchDoc.id, 'transactions'));
+        transSnap.docs.forEach(d => {
+          const t = d.data();
+          if (t.type === 'sale') { totalSales += (t.totalPrice || 0); }
+        });
+        const prodSnap = await getDocs(collection(db, 'branches', branchDoc.id, 'products'));
+        totalProducts += prodSnap.size;
+        const custSnap = await getDocs(collection(db, 'branches', branchDoc.id, 'customers'));
+        custSnap.docs.forEach(d => {
+          const c = d.data();
+          if ((c.balance || 0) > 0) totalDebts += c.balance;
+        });
+      } catch {}
+    }
+
+    document.getElementById('stat-sales').textContent = totalSales.toLocaleString('ar') + ' ر.س';
+    document.getElementById('stat-products').textContent = totalProducts;
+    document.getElementById('stat-debts').textContent = totalDebts.toLocaleString('ar') + ' ر.س';
+
+    // Branch performance
+    renderBranchPerf(branchSnap.docs);
+
+  } catch(e) {
+    console.error('Dashboard error:', e);
+  }
+}
+
+async function renderBranchPerf(branchDocs) {
+  const container = document.getElementById('branchPerfTable');
+  if (!branchDocs.length) {
+    container.innerHTML = '<div class="empty-state"><i class="ph ph-buildings"></i><p>لا توجد فروع بعد</p></div>';
+    return;
+  }
+  let rows = '';
+  for (const d of branchDocs) {
+    const b = d.data();
+    let sales = 0;
+    try {
+      const { collection, getDocs } = window.FM;
+      const snap = await getDocs(collection(window.db, 'branches', d.id, 'transactions'));
+      snap.docs.forEach(t => { if(t.data().type === 'sale') sales += t.data().totalPrice || 0; });
+    } catch {}
+    rows += `<tr>
+      <td><span style="font-weight:700;">${b.name}</span><br><span style="font-size:11px;color:var(--text3);">${b.city||''}</span></td>
+      <td><span class="badge ${b.status==='active'?'green':'red'}">${b.status==='active'?'نشط':'متوقف'}</span></td>
+      <td style="font-weight:800; color:var(--amber);">${sales.toLocaleString('ar')}</td>
+    </tr>`;
+  }
+  container.innerHTML = `<table><thead><tr><th>الفرع</th><th>الحالة</th><th>المبيعات</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ============================================================
+// BRANCHES
+// ============================================================
+async function loadBranches() {
+  try {
+    const { collection, getDocs } = window.FM;
+    const snap = await getDocs(collection(window.db, 'branches'));
+    branches = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderBranchGrid();
+    populateBranchSelects();
+  } catch(e) { console.error(e); }
+}
+
+function renderBranchGrid() {
+  const container = document.getElementById('branchGrid');
+  if (!branches.length) {
+    container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="ph ph-buildings"></i><p>لا توجد فروع — أضف الفرع الأول</p></div>';
+    return;
+  }
+  container.innerHTML = branches.map(b => `
+    <div class="branch-card">
+      <div class="branch-card-header">
+        <div class="branch-icon">🏢</div>
+        <div>
+          <div class="branch-name">${b.name}</div>
+          <div class="branch-city">${b.city || ''} ${b.phone ? '• ' + b.phone : ''}</div>
+        </div>
+        <span class="badge ${b.status==='active'?'green':'red'}" style="margin-right:auto;">${b.status==='active'?'نشط':'متوقف'}</span>
+      </div>
+      <div class="branch-stats">
+        <div class="branch-stat">
+          <div class="branch-stat-label">الكود</div>
+          <div class="branch-stat-value" style="font-size:13px; font-family:monospace;">${b.id.substring(0,8)}</div>
+        </div>
+        <div class="branch-stat">
+          <div class="branch-stat-label">العنوان</div>
+          <div class="branch-stat-value" style="font-size:12px; color:var(--text2);">${b.address || '—'}</div>
+        </div>
+      </div>
+      <div class="branch-actions">
+        <button class="btn btn-primary btn-sm" onclick="editBranch('${b.id}')"><i class="ph ph-pencil"></i> تعديل</button>
+        <button class="btn ${b.status==='active'?'btn-warning':'btn-success'} btn-sm" onclick="toggleBranchStatus('${b.id}', '${b.status}')">
+          <i class="ph ph-${b.status==='active'?'pause':'play'}"></i> ${b.status==='active'?'تعطيل':'تفعيل'}
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteBranch('${b.id}', '${b.name}')"><i class="ph ph-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddBranch() {
+  ['branch_name','branch_city','branch_phone','branch_address'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('branch_status').value = 'active';
+  document.getElementById('modalAddBranch').style.display = 'flex';
+}
+
+async function saveBranch() {
+  const name = document.getElementById('branch_name').value.trim();
+  if (!name) { toast('❌ اسم الفرع مطلوب'); return; }
+  try {
+    const { collection, addDoc, serverTimestamp } = window.FM;
+    await addDoc(collection(window.db, 'branches'), {
+      name,
+      city: document.getElementById('branch_city').value.trim(),
+      phone: document.getElementById('branch_phone').value.trim(),
+      address: document.getElementById('branch_address').value.trim(),
+      status: document.getElementById('branch_status').value,
+      createdAt: serverTimestamp()
+    });
+    closeModal('modalAddBranch');
+    toast('✅ تم إنشاء الفرع');
+    await loadBranches();
+    logActivity('branch', `تم إنشاء فرع: ${name}`);
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+async function toggleBranchStatus(id, currentStatus) {
+  const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+  try {
+    const { doc, updateDoc } = window.FM;
+    await updateDoc(doc(window.db, 'branches', id), { status: newStatus });
+    toast(newStatus === 'active' ? '✅ تم تفعيل الفرع' : '⏸️ تم تعطيل الفرع');
+    await loadBranches();
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+async function deleteBranch(id, name) {
+  if (!confirm(`⚠️ حذف فرع "${name}"؟ سيتم حذف كل بياناته!`)) return;
+  try {
+    const { doc, deleteDoc } = window.FM;
+    await deleteDoc(doc(window.db, 'branches', id));
+    toast('🗑️ تم حذف الفرع');
+    await loadBranches();
+    logActivity('branch', `تم حذف فرع: ${name}`);
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+function editBranch(id) {
+  const b = branches.find(x => x.id === id);
+  if (!b) return;
+  document.getElementById('branch_name').value = b.name;
+  document.getElementById('branch_city').value = b.city || '';
+  document.getElementById('branch_phone').value = b.phone || '';
+  document.getElementById('branch_address').value = b.address || '';
+  document.getElementById('branch_status').value = b.status || 'active';
+  // Change save button to update
+  document.querySelector('#modalAddBranch .btn-success').onclick = () => updateBranch(id);
+  document.getElementById('modalAddBranch').style.display = 'flex';
+}
+
+async function updateBranch(id) {
+  try {
+    const { doc, updateDoc } = window.FM;
+    await updateDoc(doc(window.db, 'branches', id), {
+      name: document.getElementById('branch_name').value.trim(),
+      city: document.getElementById('branch_city').value.trim(),
+      phone: document.getElementById('branch_phone').value.trim(),
+      address: document.getElementById('branch_address').value.trim(),
+      status: document.getElementById('branch_status').value
+    });
+    closeModal('modalAddBranch');
+    document.querySelector('#modalAddBranch .btn-success').onclick = saveBranch;
+    toast('✅ تم تحديث الفرع');
+    await loadBranches();
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+function populateBranchSelects() {
+  const selects = ['user_branch', 'user_existing_branch'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.innerHTML = '<option value="all">كل الفروع</option>' +
+        branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+    }
+  });
+}
+
+// ============================================================
+// USERS
+// ============================================================
+async function loadUsers() {
+  try {
+    const { collection, getDocs } = window.FM;
+    const snap = await getDocs(collection(window.db, 'users'));
+    users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderUsersTable();
+  } catch(e) { console.error(e); }
+}
+
+function renderUsersTable(filtered = null) {
+  const list = filtered || users;
+  const roleColors = { admin: 'blue', manager: 'violet', cashier: 'green', viewer: 'amber' };
+  const roleNames = { admin: 'مدير عام', manager: 'مدير فرع', cashier: 'كاشير', viewer: 'مراقب' };
+  
+  document.getElementById('usersTableBody').innerHTML = list.length ? list.map(u => {
+    const branch = branches.find(b => b.id === u.branchId);
+    return `<tr>
+      <td>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:34px;height:34px;background:linear-gradient(135deg,var(--blue),var(--violet));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;">${(u.name||u.email||'؟')[0]}</div>
+          <div>
+            <div style="font-weight:700;">${u.name || '—'}</div>
+            <div style="font-size:11px;color:var(--text3);" dir="ltr">${u.id.substring(0,12)}...</div>
+          </div>
+        </div>
+      </td>
+      <td dir="ltr" style="font-size:13px;">${u.email || '—'}</td>
+      <td>${branch ? branch.name : (u.branchId === 'all' ? 'كل الفروع' : u.branchId || '—')}</td>
+      <td><span class="badge ${roleColors[u.role]||'blue'}">${roleNames[u.role]||u.role}</span></td>
+      <td><span class="badge ${u.status==='active'?'green':'red'}">${u.status==='active'?'نشط':'معطل'}</span></td>
+      <td style="font-size:12px; color:var(--text3);">${u.lastLogin ? new Date(u.lastLogin.seconds*1000).toLocaleDateString('ar') : '—'}</td>
+      <td>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-warning btn-sm" onclick="resetUserPassword('${u.email}')"><i class="ph ph-key"></i></button>
+          <button class="btn ${u.status==='active'?'btn-danger':'btn-success'} btn-sm" onclick="toggleUserStatus('${u.id}','${u.status}')">
+            <i class="ph ph-${u.status==='active'?'prohibit':'check'}"></i>
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}','${u.name||u.email}')"><i class="ph ph-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7"><div class="empty-state"><i class="ph ph-users"></i><p>لا يوجد مستخدمون</p></div></td></tr>';
+}
+
+function filterUsers() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  const filtered = users.filter(u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+  renderUsersTable(filtered);
+}
+
+function openAddUser() {
+  populateBranchSelects();
+  document.getElementById('modalAddUser').style.display = 'flex';
+  document.getElementById('addUserError').style.display = 'none';
+}
+
+function switchAddUserTab(tab) {
+  document.querySelectorAll('#addUserTabs .tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='create')||(i===1&&tab==='existing')));
+  document.getElementById('addUserCreate').style.display = tab === 'create' ? 'block' : 'none';
+  document.getElementById('addUserExisting').style.display = tab === 'existing' ? 'block' : 'none';
+}
+
+async function saveUser() {
+  const name = document.getElementById('user_name').value.trim();
+  const email = document.getElementById('user_email').value.trim();
+  const password = document.getElementById('user_password').value;
+  const role = document.getElementById('user_role').value;
+  const branchId = document.getElementById('user_branch').value;
+
+  if (!name || !email || !password) {
+    document.getElementById('addUserError').style.display = 'flex';
+    document.getElementById('addUserErrorText').textContent = 'يرجى ملء جميع الحقول';
+    return;
+  }
+  if (password.length < 6) {
+    document.getElementById('addUserError').style.display = 'flex';
+    document.getElementById('addUserErrorText').textContent = 'كلمة المرور 6 أحرف على الأقل';
+    return;
+  }
+  try {
+    const { createUserWithEmailAndPassword, updateProfile } = window.FM;
+    const { doc, setDoc, serverTimestamp } = window.FM;
+    const userCred = await createUserWithEmailAndPassword(window.auth, email, password);
+    await updateProfile(userCred.user, { displayName: name });
+    await setDoc(doc(window.db, 'users', userCred.user.uid), {
+      name, email, role, branchId,
+      status: 'active',
+      createdAt: serverTimestamp(),
+      lastLogin: null
+    });
+    closeModal('modalAddUser');
+    toast('✅ تم إنشاء الحساب بنجاح');
+    await loadUsers();
+    logActivity('user', `تم إنشاء مستخدم: ${name} (${role})`);
+  } catch(e) {
+    document.getElementById('addUserError').style.display = 'flex';
+    const msgs = {
+      'auth/email-already-in-use': 'البريد الإلكتروني مستخدم مسبقاً',
+      'auth/invalid-email': 'صيغة البريد غير صحيحة'
+    };
+    document.getElementById('addUserErrorText').textContent = msgs[e.code] || e.message;
+  }
+}
+
+async function saveExistingUser() {
+  const uid = document.getElementById('user_uid').value.trim();
+  const name = document.getElementById('user_existing_name').value.trim();
+  const role = document.getElementById('user_existing_role').value;
+  const branchId = document.getElementById('user_existing_branch').value;
+  if (!uid) { toast('❌ UID مطلوب'); return; }
+  try {
+    const { doc, setDoc, serverTimestamp } = window.FM;
+    await setDoc(doc(window.db, 'users', uid), { name, role, branchId, status:'active', createdAt: serverTimestamp() }, { merge: true });
+    closeModal('modalAddUser');
+    toast('✅ تم ربط المستخدم');
+    await loadUsers();
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+async function toggleUserStatus(id, current) {
+  const newStatus = current === 'active' ? 'inactive' : 'active';
+  try {
+    const { doc, updateDoc } = window.FM;
+    await updateDoc(doc(window.db, 'users', id), { status: newStatus });
+    toast(newStatus === 'active' ? '✅ تم تفعيل المستخدم' : '🚫 تم تعطيل المستخدم');
+    await loadUsers();
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`حذف مستخدم "${name}"؟`)) return;
+  try {
+    const { doc, deleteDoc } = window.FM;
+    await deleteDoc(doc(window.db, 'users', id));
+    toast('🗑️ تم حذف المستخدم');
+    await loadUsers();
+    logActivity('user', `تم حذف مستخدم: ${name}`);
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+async function resetUserPassword(email) {
+  if (!email) { toast('❌ لا يوجد بريد إلكتروني'); return; }
+  try {
+    await window.FM.sendPasswordResetEmail(window.auth, email);
+    toast('📧 تم إرسال رابط استعادة كلمة المرور');
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+// ============================================================
+// PERMISSIONS
+// ============================================================
+async function loadPermissionsFromDB() {
+  try {
+    const { doc, getDoc } = window.FM;
+    const snap = await getDoc(doc(window.db, 'system', 'permissions'));
+    if (snap.exists()) permissions = snap.data();
+  } catch {}
+  renderPermissions();
+}
+
+function selectRole(role) {
+  selectedRole = role;
+  document.querySelectorAll('[id^="role-"]').forEach(el => el.classList.remove('active'));
+  document.getElementById('role-' + role).classList.add('active');
+  const names = { admin:'المدير العام', manager:'مدير الفرع', cashier:'الكاشير', viewer:'المراقب' };
+  document.getElementById('permissionsTitle').textContent = 'صلاحيات ' + names[role];
+  renderPermissions();
+}
+
+function renderPermissions() {
+  const p = permissions[selectedRole] || {};
+  document.getElementById('permissionsList').innerHTML = Object.keys(permissionLabels).map(key => `
+    <div class="permission-row">
+      <div>
+        <div class="permission-name">${permissionLabels[key].name}</div>
+        <div class="permission-desc">${permissionLabels[key].desc}</div>
+      </div>
+      <div class="toggle ${p[key] ? 'on' : ''}" onclick="togglePermission('${key}')"></div>
+    </div>
+  `).join('');
+}
+
+function togglePermission(key) {
+  if (!permissions[selectedRole]) permissions[selectedRole] = {};
+  permissions[selectedRole][key] = !permissions[selectedRole][key];
+  renderPermissions();
+}
+
+async function savePermissions() {
+  try {
+    const { doc, setDoc } = window.FM;
+    await setDoc(doc(window.db, 'system', 'permissions'), permissions);
+    toast('✅ تم حفظ الصلاحيات');
+    logActivity('system', `تم تحديث صلاحيات دور: ${selectedRole}`);
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+// ============================================================
+// REPORTS
+// ============================================================
+async function generateReport() {
+  const from = document.getElementById('reportFrom').value;
+  const to = document.getElementById('reportTo').value;
+  if (!from || !to) { toast('❌ حدد الفترة الزمنية'); return; }
+  
+  const fromTs = new Date(from).getTime();
+  const toTs = new Date(to).getTime() + 86400000;
+  
+  let totalSales = 0, totalRevenue = 0, totalDebts = 0;
+  let branchRows = '';
+  
+  try {
+    const { collection, getDocs } = window.FM;
+    for (const b of branches) {
+      let bSales = 0, bRevenue = 0;
+      const snap = await getDocs(collection(window.db, 'branches', b.id, 'transactions'));
+      snap.docs.forEach(d => {
+        const t = d.data();
+        const ts = t.timestamp || 0;
+        if (ts >= fromTs && ts <= toTs && t.type === 'sale') {
+          bSales++;
+          bRevenue += t.totalPrice || 0;
+        }
+      });
+      totalSales += bSales;
+      totalRevenue += bRevenue;
+      branchRows += `<tr>
+        <td style="font-weight:700;">${b.name}</td>
+        <td style="text-align:center;">${bSales}</td>
+        <td style="text-align:center; font-weight:800; color:var(--amber);">${bRevenue.toLocaleString('ar')}</td>
+        <td style="text-align:center;"><span class="badge ${b.status==='active'?'green':'red'}">${b.status==='active'?'نشط':'متوقف'}</span></td>
+      </tr>`;
+    }
+
+    document.getElementById('reportStats').innerHTML = `
+      <div class="stat-card blue"><div class="stat-label">إجمالي الفروع</div><div class="stat-value blue">${branches.length}</div><div class="stat-icon">🏢</div></div>
+      <div class="stat-card amber"><div class="stat-label">عدد المبيعات</div><div class="stat-value amber">${totalSales}</div><div class="stat-icon">🧾</div></div>
+      <div class="stat-card green"><div class="stat-label">إجمالي الإيرادات</div><div class="stat-value green">${totalRevenue.toLocaleString('ar')}</div><div class="stat-icon">💰</div></div>
+    `;
+
+    document.getElementById('reportTableContent').innerHTML = `
+      <table>
+        <thead><tr><th>الفرع</th><th>عدد المبيعات</th><th>الإيرادات</th><th>الحالة</th></tr></thead>
+        <tbody>${branchRows || '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text3);">لا توجد بيانات</td></tr>'}</tbody>
+      </table>
+    `;
+    document.getElementById('reportTable').style.display = 'block';
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+// ============================================================
+// ACTIVITY LOG
+// ============================================================
+async function loadActivity() {
+  try {
+    const { collection, getDocs, query, orderBy } = window.FM;
+    let q = query(collection(window.db, 'activityLog'), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    const filter = document.getElementById('activityFilter')?.value;
+    
+    const colors = { login:'blue', sale:'green', product:'amber', user:'violet', branch:'blue', system:'red' };
+    
+    let items = snap.docs.map(d => d.data()).filter(d => !filter || d.type === filter);
+    
+    document.getElementById('activityList').innerHTML = items.length ? items.slice(0,50).map(a => `
+      <div class="activity-item">
+        <div class="activity-dot ${colors[a.type]||'blue'}"></div>
+        <div>
+          <div class="activity-text">${a.message}</div>
+          <div class="activity-time">${a.createdAt ? new Date(a.createdAt.seconds*1000).toLocaleString('ar') : '—'}</div>
+        </div>
+      </div>
+    `).join('') : '<div class="empty-state"><i class="ph ph-clock-counter-clockwise"></i><p>لا يوجد نشاط مسجل بعد</p></div>';
+  } catch(e) {
+    document.getElementById('activityList').innerHTML = '<div class="empty-state"><p>تعذّر تحميل السجل</p></div>';
+  }
+}
+
+async function logActivity(type, message) {
+  try {
+    const { collection, addDoc, serverTimestamp } = window.FM;
+    await addDoc(collection(window.db, 'activityLog'), {
+      type, message,
+      userId: currentUser?.uid,
+      createdAt: serverTimestamp()
+    });
+  } catch {}
+}
+
+async function clearActivityLog() {
+  if (!confirm('مسح سجل الأحداث كاملاً؟')) return;
+  try {
+    const { collection, getDocs, deleteDoc, doc } = window.FM;
+    const snap = await getDocs(collection(window.db, 'activityLog'));
+    await Promise.all(snap.docs.map(d => deleteDoc(doc(window.db, 'activityLog', d.id))));
+    toast('🗑️ تم مسح السجل');
+    loadActivity();
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+async function loadSettings() {
+  try {
+    const { doc, getDoc } = window.FM;
+    const snap = await getDoc(doc(window.db, 'system', 'settings'));
+    if (snap.exists()) {
+      const s = snap.data();
+      document.getElementById('set_companyName').value = s.companyName || '';
+      document.getElementById('set_currency').value = s.currency || 'ريال';
+      document.getElementById('set_timezone').value = s.timezone || 'Asia/Riyadh';
+    }
+    const cfg = JSON.parse(localStorage.getItem('barq_admin_firebase_config') || '{}');
+    document.getElementById('currentProjectId').value = cfg.projectId || 'bark-44676';
+  } catch {}
+}
+
+async function saveSettings() {
+  try {
+    const { doc, setDoc } = window.FM;
+    await setDoc(doc(window.db, 'system', 'settings'), {
+      companyName: document.getElementById('set_companyName').value,
+      currency: document.getElementById('set_currency').value,
+      timezone: document.getElementById('set_timezone').value
+    }, { merge: true });
+    toast('✅ تم حفظ الإعدادات');
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+function copyRules() {
+  const text = document.getElementById('rulesCode').textContent;
+  navigator.clipboard.writeText(text).then(() => toast('✅ تم نسخ القواعد'));
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.style.display = 'none'; });
+});
+
+// Set default report dates
+window.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  const monthAgo = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
+  const rf = document.getElementById('reportFrom');
+  const rt = document.getElementById('reportTo');
+  if (rf) rf.value = monthAgo;
+  if (rt) rt.value = today;
+});
+
+// Recentactivity in dashboard
+async function loadRecentActivity() {
+  try {
+    const { collection, getDocs, query, orderBy } = window.FM;
+    const q = query(collection(window.db, 'activityLog'), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    const colors = { login:'blue', sale:'green', product:'amber', user:'violet', branch:'blue', system:'red' };
+    const container = document.getElementById('recentActivity');
+    const items = snap.docs.slice(0,8).map(d => d.data());
+    container.innerHTML = items.length ? items.map(a => `
+      <div class="activity-item">
+        <div class="activity-dot ${colors[a.type]||'blue'}"></div>
+        <div>
+          <div class="activity-text">${a.message}</div>
+          <div class="activity-time">${a.createdAt ? new Date(a.createdAt.seconds*1000).toLocaleString('ar') : '—'}</div>
+        </div>
+      </div>
+    `).join('') : '<div class="empty-state"><i class="ph ph-clock-counter-clockwise"></i><p>لا يوجد نشاط</p></div>';
+  } catch {}
+}
+
+window.addEventListener('firebaseReady', () => {
+  setTimeout(loadRecentActivity, 2000);
+});
+</script>
+</body>
+</html>
