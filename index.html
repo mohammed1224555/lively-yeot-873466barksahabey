@@ -1067,12 +1067,13 @@
             /* ===== المحتوى الرئيسي ===== */
             main {
                 padding: 12px !important;
-                padding-bottom: 80px !important;
-                height: 100dvh !important;
-                height: 100vh !important;
+                padding-bottom: 100px !important;
+                height: calc(100vh - 0px) !important;
+                height: calc(100dvh - 0px) !important;
                 overflow-x: hidden !important;
                 overflow-y: auto !important;
                 -webkit-overflow-scrolling: touch;
+                box-sizing: border-box !important;
             }
 
             /* ===== الجداول في الجوال ===== */
@@ -7231,6 +7232,15 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
 
             return (
                 <div className="flex flex-col md:flex-row font-cairo" style={{height:'100dvh',height:'100vh',overflow:'hidden'}}>
+                    <style>{`
+                        @media (max-width: 768px) {
+                            #main-content-area {
+                                height: calc(100vh - 68px) !important;
+                                height: calc(100dvh - 68px) !important;
+                                padding-bottom: 24px !important;
+                            }
+                        }
+                    `}</style>
                     <div id="print-area">
                         <PrintTemplate data={printData} settings={settings} type={printType} reportStats={reportStatsForPrint} />
                     </div>
@@ -7243,7 +7253,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                         onRenewSuccess={handleRenewalSuccess}
                     />
 
-                    <aside className="no-print sidebar-glass w-full md:w-72 p-5 flex flex-col sticky top-0 h-screen overflow-y-auto z-50 custom-scroll">
+                    <aside className="no-print sidebar-glass w-full md:w-72 p-5 flex flex-col md:sticky md:top-0 md:h-screen overflow-y-auto z-50 custom-scroll">
                         <div className="sidebar-logo text-center py-5 mb-4" style={{borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
                             <div className="text-5xl mb-2" style={{filter:'drop-shadow(0 0 16px rgba(99,165,255,0.7))'}}>⚡</div>
                             <h1 className="text-lg font-black" style={{color:'var(--accent-blue)'}}>نظام البرق</h1>
@@ -7341,7 +7351,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                         </div>
                     </aside>
                     
-                    <main className="no-print flex-1 p-4 md:p-8 relative overflow-y-auto overflow-x-hidden h-full custom-scroll" style={{background:'rgba(4,10,25,0.3)'}}>
+                    <main id="main-content-area" className="no-print flex-1 p-4 md:p-8 relative overflow-y-auto overflow-x-hidden h-full custom-scroll" style={{background:'rgba(4,10,25,0.3)'}}>
                         {/* مؤشر المزامنة + الإشعارات */}
                         <div className="fixed top-4 left-4 z-[300] flex items-center gap-2">
                             <div className="relative">
