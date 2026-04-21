@@ -722,8 +722,8 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        @keyframes slideIn {
-            from { transform: translateY(-24px); opacity: 0; }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
@@ -978,92 +978,177 @@
         body[data-theme="neumorphism"] main span:not(.badge):not([class*="text-"]) { color: #1f2937; }
 
         /* =====================================================
-           📱 MOBILE RESPONSIVE - شاشات الجوال
+           📱 MOBILE RESPONSIVE - شاشات الجوال (إصلاح شامل)
         ===================================================== */
+
+        /* منع التمرير الأفقي على الصفحة */
+        html, body { overflow-x: hidden; }
+
         @media (max-width: 768px) {
-            body { overflow: hidden; }
-            
-            /* شريط الجانب في الجوال */
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                position: fixed;
+            }
+
+            /* ===== شريط التنقل السفلي ===== */
             .sidebar-glass {
                 position: fixed !important;
                 bottom: 0 !important;
                 left: 0 !important; right: 0 !important;
                 top: auto !important;
                 width: 100% !important;
-                height: auto !important;
+                height: 68px !important;
                 flex-direction: row !important;
                 padding: 0 !important;
                 z-index: 1000 !important;
                 border-left: none !important;
                 border-top: 1px solid rgba(255,255,255,0.12) !important;
-                box-shadow: 0 -4px 20px rgba(0,0,0,0.4) !important;
-                backdrop-filter: blur(20px) !important;
-                overflow: visible !important;
+                box-shadow: 0 -4px 24px rgba(0,0,0,0.5) !important;
+                backdrop-filter: blur(24px) !important;
+                -webkit-backdrop-filter: blur(24px) !important;
+                overflow: hidden !important;
+                align-items: center !important;
             }
 
-            .sidebar-logo { display: none !important; }
+            /* إخفاء العناصر غير الضرورية في شريط الجانب */
+            .sidebar-logo,
             .sidebar-license { display: none !important; }
-            
+
+            /* شريط التنقل - يملأ العرض */
             nav.flex-1 {
                 display: flex !important;
                 flex-direction: row !important;
                 overflow-x: auto !important;
+                overflow-y: hidden !important;
                 gap: 0 !important;
                 width: 100% !important;
-                padding: 0 8px !important;
+                height: 68px !important;
+                padding: 0 4px !important;
+                align-items: center !important;
                 -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
+                scroll-behavior: smooth;
+                scrollbar-width: none !important;
             }
-            nav.flex-1::-webkit-scrollbar { display: none; }
-            
+            nav.flex-1::-webkit-scrollbar { display: none !important; }
+
+            /* أزرار التنقل - عمودية مضغوطة */
             nav.flex-1 button.nav-item {
                 flex-direction: column !important;
                 flex-shrink: 0 !important;
-                padding: 8px 12px !important;
-                gap: 3px !important;
-                min-width: 64px !important;
-                border-radius: 10px !important;
-                margin: 6px 2px !important;
+                padding: 6px 10px !important;
+                gap: 2px !important;
+                min-width: 58px !important;
+                max-width: 72px !important;
+                height: 56px !important;
+                border-radius: 12px !important;
+                margin: 0 2px !important;
                 justify-content: center !important;
                 align-items: center !important;
+                border: none !important;
             }
             nav.flex-1 button.nav-item span {
-                font-size: 0.55rem !important;
+                font-size: 0.52rem !important;
                 text-align: center !important;
                 white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                max-width: 60px !important;
+                line-height: 1.2 !important;
             }
-            nav.flex-1 button.nav-item i { font-size: 1.25rem !important; }
+            nav.flex-1 button.nav-item i { font-size: 1.2rem !important; }
             nav.flex-1 button.nav-item.active::before { display: none !important; }
+            nav.flex-1 button.nav-item.active {
+                background: linear-gradient(135deg, rgba(59,130,246,0.55), rgba(99,102,241,0.45)) !important;
+                border: 1px solid rgba(99,165,255,0.4) !important;
+            }
 
-            /* المحتوى الرئيسي */
+            /* ===== المحتوى الرئيسي ===== */
             main {
-                padding: 16px !important;
-                padding-bottom: 90px !important;
+                padding: 12px !important;
+                padding-bottom: 80px !important;
                 height: 100dvh !important;
                 height: 100vh !important;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
             }
 
-            /* ضبط الجداول في الجوال */
-            .overflow-x-auto { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
-            
-            /* كروت الإحصاءات */
+            /* ===== الجداول في الجوال ===== */
+            .overflow-x-auto {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+                max-width: 100vw !important;
+            }
+            /* منع اتساع الجداول */
+            table { min-width: auto !important; }
+            th, td { padding: 6px 8px !important; font-size: 0.72rem !important; }
+
+            /* ===== كروت الإحصاءات ===== */
+            .stat-card { padding: 1rem !important; }
             .stat-card .val { font-size: 1.3rem !important; }
-            
-            /* الإشعارات في الجوال */
+            .stat-card .icon { font-size: 1.6rem !important; }
+
+            /* ===== الإشعارات ===== */
             .notification-glass {
-                font-size: 0.8rem !important;
-                padding: 8px 14px !important;
+                font-size: 0.75rem !important;
+                padding: 8px 12px !important;
+                max-width: calc(100vw - 80px) !important;
             }
 
-            /* Modal في الجوال */
+            /* ===== المودالات في الجوال ===== */
+            .modal-overlay {
+                padding: 0 !important;
+                align-items: flex-end !important;
+            }
             .modal-glass {
-                max-height: 80vh !important;
+                max-height: 88vh !important;
+                width: 100% !important;
+                max-width: 100% !important;
                 margin: 0 !important;
-                border-radius: 20px !important;
+                border-radius: 24px 24px 0 0 !important;
+                border-bottom: none !important;
             }
 
-            /* زر السمة في الجوال */
-            .fixed.top-4.left-4 { top: 8px !important; left: 8px !important; }
+            /* ===== زر السمة ===== */
+            .fixed.top-4.left-4 {
+                top: 6px !important;
+                left: 6px !important;
+            }
+
+            /* ===== تقليص النصوص الطويلة ===== */
+            h1.text-3xl { font-size: 1.4rem !important; }
+            h2.text-2xl { font-size: 1.2rem !important; }
+            .text-3xl { font-size: 1.5rem !important; }
+
+            /* ===== شبكة الكروت ===== */
+            .grid.grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
+            .grid.md\:grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
+            .grid.md\:grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; }
+
+            /* ===== أزرار الرأس ===== */
+            .flex.gap-2.flex-wrap { gap: 6px !important; }
+            .flex.gap-2.flex-wrap button,
+            .flex.gap-2.flex-wrap select {
+                padding: 6px 10px !important;
+                font-size: 0.75rem !important;
+            }
+
+            /* ===== نقطة البيع - الأزرار الكبيرة ===== */
+            .input-field { font-size: 1rem !important; padding: 0.7rem 0.9rem !important; }
+
+            /* ===== رأس الصفحة مع الأزرار ===== */
+            .flex.flex-col.md\:flex-row.justify-between { gap: 8px !important; }
+        }
+
+        /* شاشات صغيرة جداً */
+        @media (max-width: 380px) {
+            nav.flex-1 button.nav-item {
+                min-width: 50px !important;
+                padding: 5px 6px !important;
+            }
+            nav.flex-1 button.nav-item span { font-size: 0.48rem !important; }
         }
 
         /* =====================================================
@@ -3511,19 +3596,280 @@
                 const cog        = cogMode === 'manual' && manualCog !== null ? Number(manualCog) : autoCog;
                 const grossP     = netSales - cog + scrapInc;
 
+                // مبيعات شبكة وكاش
+                const cardSales  = sales.reduce((a,b)=>a+(b.payMethod==='card'?+b.totalPrice||0:b.payMethod==='split'?+b.cardPaid||0:0),0);
+                const cashSales  = sales.reduce((a,b)=>a+(b.payMethod==='cash'?+b.totalPrice||0:b.payMethod==='split'?+b.cashPaid||0:0),0);
+
                 // المصروفات مع إمكانية الاستثناء
                 const allExpCats = Object.entries(
                     pExp.reduce((a,b)=>{const k=b.title||'أخرى';a[k]=(a[k]||0)+(+b.amount||0);return a;},{})
                 ).sort((a,b)=>b[1]-a[1]);
+                // بيانات المصروفات التفصيلية (للعرض مع نوع كل مصروف)
+                const allExpDetail = pExp.reduce((a,b)=>{
+                    const k=b.title||'أخرى';
+                    if(!a[k]) a[k]={total:0,cash:0,card:0};
+                    a[k].total+=(+b.amount||0);
+                    if(b.method==='cash') a[k].cash+=(+b.amount||0);
+                    else a[k].card+=(+b.amount||0);
+                    return a;
+                },{});
                 const inclExpCats = allExpCats.filter(([k])=>!excludedExpenses.includes(k));
                 const exclExpCats = allExpCats.filter(([k])=>excludedExpenses.includes(k));
-                const expT   = inclExpCats.reduce((a,[,v])=>a+v,0);
-                const exclT  = exclExpCats.reduce((a,[,v])=>a+v,0);
-                const netP   = grossP - expT;
-                const margin = netSales>0?((netP/netSales)*100).toFixed(1):0;
+                const expT      = inclExpCats.reduce((a,[,v])=>a+v,0);
+                const expTCard  = inclExpCats.reduce((a,[k])=>a+(allExpDetail[k]?.card||0),0);
+                const expTCash  = inclExpCats.reduce((a,[k])=>a+(allExpDetail[k]?.cash||0),0);
+                const exclT     = exclExpCats.reduce((a,[,v])=>a+v,0);
+                const netP      = grossP - expT;
+                const netCard   = cardSales - expTCard;
+                const netCash   = cashSales - expTCash;
+                const margin    = netSales>0?((netP/netSales)*100).toFixed(1):0;
+
+                // الكميات
+                const qtySold      = sales.reduce((a,b)=>a+(+b.qty||0),0);
+                const pT_all       = transactions.filter(t=>t.timestamp>=s&&t.timestamp<=e);
+                const purchases    = pT_all.filter(t=>t.type==='purchase');
+                const qtyPurchased = purchases.reduce((a,b)=>a+(+b.qty||0),0);
 
                 const toggleExclude = (title) => {
                     setExcludedExpenses(prev => prev.includes(title) ? prev.filter(x=>x!==title) : [...prev, title]);
+                };
+
+                const printQuickReport = () => {
+                    const periodLabel = period==='month' ? `${months[mo]} ${yr}` : `سنة ${yr}`;
+
+                    // مصروفات الشبكة
+                    const cardExpRows = inclExpCats
+                        .filter(([k]) => (allExpDetail[k]?.card||0) > 0)
+                        .map(([k]) => {
+                            const amt = allExpDetail[k]?.card || 0;
+                            return `<tr><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;color:#374151;font-size:13px">${k}</td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;text-align:left;color:#dc2626;font-weight:900;font-size:13px">${(-amt).toLocaleString()} ر</td></tr>`;
+                        }).join('');
+
+                    // مصروفات الكاش
+                    const cashExpRows = inclExpCats
+                        .filter(([k]) => (allExpDetail[k]?.cash||0) > 0)
+                        .map(([k]) => {
+                            const amt = allExpDetail[k]?.cash || 0;
+                            return `<tr><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;color:#374151;font-size:13px">${k}</td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;text-align:left;color:#dc2626;font-weight:900;font-size:13px">${(-amt).toLocaleString()} ر</td></tr>`;
+                        }).join('');
+
+                    // مصروفات مختلطة (لا تنتمي بالكامل لشبكة أو كاش)
+                    const mixedCardRows = inclExpCats
+                        .filter(([k]) => (allExpDetail[k]?.card||0) > 0 && (allExpDetail[k]?.cash||0) > 0)
+                        .map(([k]) => {
+                            const det = allExpDetail[k];
+                            return `<tr><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;color:#374151;font-size:13px">${k} <span style="font-size:10px;background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:10px">شبكة</span></td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;text-align:left;color:#dc2626;font-weight:900;font-size:13px">${(-det.card).toLocaleString()} ر</td></tr>`;
+                        }).join('');
+
+                    const mixedCashRows = inclExpCats
+                        .filter(([k]) => (allExpDetail[k]?.card||0) > 0 && (allExpDetail[k]?.cash||0) > 0)
+                        .map(([k]) => {
+                            const det = allExpDetail[k];
+                            return `<tr><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;color:#374151;font-size:13px">${k} <span style="font-size:10px;background:#d1fae5;color:#065f46;padding:1px 5px;border-radius:10px">كاش</span></td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;text-align:left;color:#dc2626;font-weight:900;font-size:13px">${(-det.cash).toLocaleString()} ر</td></tr>`;
+                        }).join('');
+
+                    const allCardExpRows = cardExpRows + mixedCardRows;
+                    const allCashExpRows = cashExpRows + mixedCashRows;
+
+                    const html = `<!DOCTYPE html><html dir="rtl" lang="ar"><head>
+<meta charset="UTF-8">
+<title>تقرير سريع — ${periodLabel}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;padding:32px;direction:rtl;font-size:14px}
+.header{text-align:center;margin-bottom:28px;padding-bottom:16px;border-bottom:3px double #1e3a5f}
+.header .logo{font-size:28px;font-weight:900;color:#1e3a5f;letter-spacing:-0.5px}
+.header .subtitle{font-size:12px;color:#64748b;margin-top:4px}
+.report-title{font-size:16px;font-weight:900;color:#1e293b;text-align:center;margin-bottom:20px;background:#f1f5f9;padding:8px 16px;border-radius:8px;border:1px solid #e2e8f0}
+
+/* ملخص الأرقام الرئيسية */
+.summary-box{border:2px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:24px}
+.summary-header{background:#1e293b;color:#fff;padding:10px 16px;font-weight:900;font-size:13px;display:flex;align-items:center;gap:6px}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid #f1f5f9;font-size:14px}
+.summary-row:last-child{border-bottom:none}
+.summary-row.indent{padding-right:28px;background:#fafafa;font-size:13px}
+.summary-row.total{background:#f8fafc;font-weight:900;font-size:15px}
+.summary-row.net-card{background:#eff6ff;font-weight:900;font-size:14px}
+.summary-row.net-cash{background:#f0fdf4;font-weight:900;font-size:14px}
+.summary-row.total-sales{background:#fff7ed;font-weight:900;font-size:16px;border-top:2px solid #e2e8f0}
+.lbl{color:#374151}
+.val-positive{color:#059669;font-weight:900}
+.val-negative{color:#dc2626;font-weight:900}
+.val-blue{color:#1d4ed8;font-weight:900}
+.val-dark{color:#0f172a;font-weight:900}
+.val-orange{color:#ea580c;font-weight:900}
+
+/* قسم المصروفات */
+.section{margin-bottom:22px}
+.section-header{background:#1e293b;color:#fff;padding:9px 14px;font-weight:900;font-size:13px;border-radius:8px 8px 0 0;display:flex;align-items:center;gap:6px}
+.section-header.card-header{background:#1d4ed8}
+.section-header.cash-header{background:#059669}
+.exp-table{width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none}
+.exp-table th{background:#334155;color:#fff;padding:8px 12px;text-align:right;font-size:12px}
+.exp-table td{vertical-align:middle}
+.exp-table tfoot td{background:#fef2f2;font-weight:900;padding:9px 12px;border-top:2px solid #e2e8f0}
+.exp-table tfoot .tot-lbl{color:#374151}
+.exp-table tfoot .tot-val{color:#dc2626;text-align:left}
+.empty-row{padding:14px;text-align:center;color:#94a3b8;font-size:12px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px}
+
+.divider{height:1px;background:linear-gradient(90deg,transparent,#cbd5e1,transparent);margin:8px 0}
+.footer{text-align:center;font-size:11px;color:#94a3b8;margin-top:28px;padding-top:12px;border-top:1px solid #e2e8f0}
+@media print{body{padding:20px}@page{margin:15mm}}
+</style>
+</head><body>
+<div class="header">
+  <div class="logo">⚡ ${settings.shopName||'نظام البرق'}</div>
+  <div class="subtitle">التقرير السريع | الفترة: ${periodLabel} | طُبع: ${new Date().toLocaleDateString('ar-SA')}</div>
+</div>
+
+<div class="report-title">📊 ملخص المبيعات والمصروفات</div>
+
+<!-- الملخص الرئيسي -->
+<div class="summary-box">
+  <div class="summary-header">💰 إجمالي المبيعات</div>
+  <div class="summary-row total-sales">
+    <span class="lbl" style="font-weight:900">إجمالي المبيعات</span>
+    <span class="val-dark" style="font-size:18px">${grossSales.toLocaleString()} ر</span>
+  </div>
+
+  <!-- شبكة -->
+  <div class="summary-row indent">
+    <span class="lbl" style="color:#1d4ed8;font-weight:700">🔵 مبيعات شبكة</span>
+    <span class="val-blue">${cardSales.toLocaleString()} ر</span>
+  </div>
+  <div class="summary-row indent">
+    <span class="lbl" style="color:#dc2626">(−) مصروفات شبكة</span>
+    <span class="val-negative">${expTCard.toLocaleString()} ر</span>
+  </div>
+  <div class="summary-row net-card">
+    <span class="lbl" style="color:#1d4ed8;font-weight:900">صافي شبكة</span>
+    <span style="color:${netCard>=0?'#1d4ed8':'#dc2626'};font-weight:900;font-size:16px">${netCard.toLocaleString()} ر</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- كاش -->
+  <div class="summary-row indent">
+    <span class="lbl" style="color:#059669;font-weight:700">🟢 مبيعات كاش</span>
+    <span class="val-positive">${cashSales.toLocaleString()} ر</span>
+  </div>
+  <div class="summary-row indent">
+    <span class="lbl" style="color:#dc2626">(−) مصروفات كاش</span>
+    <span class="val-negative">${expTCash.toLocaleString()} ر</span>
+  </div>
+  <div class="summary-row net-cash">
+    <span class="lbl" style="color:#059669;font-weight:900">صافي كاش</span>
+    <span style="color:${netCash>=0?'#059669':'#dc2626'};font-weight:900;font-size:16px">${netCash.toLocaleString()} ر</span>
+  </div>
+</div>
+
+<!-- تفاصيل مصروفات الشبكة -->
+<div class="section">
+  <div class="section-header card-header">🔵 تفاصيل مصروفات الشبكة</div>
+  ${allCardExpRows ? `
+  <table class="exp-table">
+    <thead><tr><th>البيان</th><th style="text-align:left">المبلغ</th></tr></thead>
+    <tbody>${allCardExpRows}</tbody>
+    <tfoot><tr><td class="tot-lbl" style="padding:9px 12px">الإجمالي</td><td class="tot-val" style="padding:9px 12px;text-align:left">${(-expTCard).toLocaleString()} ر</td></tr></tfoot>
+  </table>` : `<div class="empty-row">لا توجد مصروفات شبكة في هذه الفترة</div>`}
+</div>
+
+<!-- تفاصيل مصروفات الكاش -->
+<div class="section">
+  <div class="section-header cash-header">🟢 تفاصيل مصروفات الكاش</div>
+  ${allCashExpRows ? `
+  <table class="exp-table">
+    <thead><tr><th>البيان</th><th style="text-align:left">المبلغ</th></tr></thead>
+    <tbody>${allCashExpRows}</tbody>
+    <tfoot><tr><td class="tot-lbl" style="padding:9px 12px">الإجمالي</td><td class="tot-val" style="padding:9px 12px;text-align:left">${(-expTCash).toLocaleString()} ر</td></tr></tfoot>
+  </table>` : `<div class="empty-row">لا توجد مصروفات كاش في هذه الفترة</div>`}
+</div>
+
+<div class="footer">⚡ نظام البرق — التقرير السريع | ${periodLabel}</div>
+<${'script'}>window.onload=()=>window.print();</${'script'}>
+</body></html>`;
+                    const w = window.open('','_blank','width=820,height=700');
+                    w.document.write(html);
+                    w.document.close();
+                };
+
+                const printReport = () => {
+                    const periodLabel = period==='month' ? `${months[mo]} ${yr}` : `سنة ${yr}`;
+                    const expRows = inclExpCats.map(([k,v])=>{
+                        const det = allExpDetail[k]||{cash:0,card:0};
+                        const isCard = det.card>0&&det.cash===0, isCash=det.cash>0&&det.card===0;
+                        return `<tr><td>${k}</td><td style="text-align:center"><span style="padding:2px 8px;border-radius:20px;font-size:11px;background:${isCard?'#dbeafe':isCash?'#d1fae5':'#ede9fe'};color:${isCard?'#1d4ed8':isCash?'#065f46':'#5b21b6'}">${isCard?'شبكة':isCash?'كاش':'مختلط'}</span></td><td style="text-align:left;color:#dc2626">${(-v).toLocaleString()} ر</td></tr>`;
+                    }).join('');
+                    const html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير الأرباح والخسائر</title><style>
+                        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Arial',sans-serif;background:#fff;color:#0f172a;padding:28px;direction:rtl}
+                        .header{text-align:center;border-bottom:3px solid #1e3a5f;padding-bottom:14px;margin-bottom:20px}
+                        .shop{font-size:22px;font-weight:900;color:#1e3a5f}.period{font-size:13px;color:#64748b;margin-top:4px}
+                        .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+                        .card{padding:14px;border-radius:10px;text-align:center;color:#fff}
+                        .card .lbl{font-size:11px;opacity:.8;margin-bottom:4px}.card .val{font-size:22px;font-weight:900}.card .sub{font-size:10px;opacity:.65;margin-top:2px}
+                        .section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:16px}
+                        .section h3{font-size:13px;font-weight:900;color:#1e293b;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;display:flex;align-items:center;gap:6px}
+                        .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:13px}
+                        .row:last-child{border-bottom:none}.row .lbl{color:#475569}.row .val{font-weight:900;color:#0f172a}
+                        .block-card{border:1px solid #bfdbfe;border-radius:8px;overflow:hidden;margin:8px 0}
+                        .block-cash{border:1px solid #a7f3d0;border-radius:8px;overflow:hidden;margin:8px 0}
+                        .block-row{display:flex;justify-content:space-between;padding:5px 10px;font-size:12px;border-bottom:1px solid rgba(0,0,0,0.06)}
+                        .block-row:last-child{border-bottom:none;font-weight:900;font-size:13px}
+                        .net-row{display:flex;justify-content:space-between;padding:10px 14px;border-radius:8px;font-weight:900;font-size:15px;margin-top:8px}
+                        table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:7px 10px;border:1px solid #e2e8f0;text-align:right}thead{background:#1e293b;color:#fff}
+                        .footer{text-align:center;font-size:11px;color:#94a3b8;margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0}
+                        @media print{body{padding:16px}.cards{grid-template-columns:repeat(4,1fr)}}
+                    </style></head><body>
+                    <div class="header">
+                        <div class="shop">⚡ ${settings.shopName||'نظام البرق'} — تقرير الأرباح والخسائر</div>
+                        <div class="period">الفترة: ${periodLabel} | طُبع: ${new Date().toLocaleDateString('ar-SA')}</div>
+                    </div>
+                    <div class="cards">
+                        <div class="card" style="background:${netP>=0?'#059669':'#dc2626'}"><div class="lbl">صافي الربح</div><div class="val">${netP.toLocaleString()}</div><div class="sub">هامش ${margin}%</div></div>
+                        <div class="card" style="background:#2563eb"><div class="lbl">إجمالي المبيعات</div><div class="val">${grossSales.toLocaleString()}</div><div class="sub">${sales.length} فاتورة</div></div>
+                        <div class="card" style="background:#ef4444"><div class="lbl">المصروفات المحتسبة</div><div class="val">${expT.toLocaleString()}</div><div class="sub">${pExp.length} مصروف</div></div>
+                        <div class="card" style="background:#1e293b"><div class="lbl">الربح الإجمالي</div><div class="val">${grossP.toLocaleString()}</div><div class="sub">قبل المصروفات</div></div>
+                    </div>
+                    <div class="section">
+                        <h3>📋 قائمة الدخل</h3>
+                        <div class="row"><span class="lbl">إجمالي المبيعات</span><span class="val">${grossSales.toLocaleString()} ر</span></div>
+                        <div class="block-card">
+                            <div class="block-row" style="color:#1d4ed8"><span>مبيعات شبكة</span><span>${cardSales.toLocaleString()} ر</span></div>
+                            <div class="block-row" style="color:#dc2626"><span>(−) مصروفات شبكة</span><span>${expTCard.toLocaleString()} ر</span></div>
+                            <div class="block-row" style="color:${netCard>=0?'#1d4ed8':'#dc2626'}"><span>صافي شبكة</span><span>${netCard.toLocaleString()} ر</span></div>
+                        </div>
+                        <div class="block-cash">
+                            <div class="block-row" style="color:#065f46"><span>مبيعات كاش</span><span>${cashSales.toLocaleString()} ر</span></div>
+                            <div class="block-row" style="color:#dc2626"><span>(−) مصروفات كاش</span><span>${expTCash.toLocaleString()} ر</span></div>
+                            <div class="block-row" style="color:${netCash>=0?'#065f46':'#dc2626'}"><span>صافي كاش</span><span>${netCash.toLocaleString()} ر</span></div>
+                        </div>
+                        <div class="row"><span class="lbl" style="color:#ea580c">(+) دخل الرجيع</span><span class="val" style="color:#ea580c">${scrapInc.toLocaleString()} ر</span></div>
+                        <div class="row"><span class="lbl">🔋 عدد البطاريات المشتراة</span><span class="val">${qtyPurchased.toLocaleString()} قطعة</span></div>
+                        <div class="row"><span class="lbl">🔋 عدد البطاريات المباعة</span><span class="val">${qtySold.toLocaleString()} قطعة</span></div>
+                        <div class="row"><span class="lbl">(−) تكلفة المبيعات (${cogMode==='manual'?'يدوي':'تلقائي'})</span><span class="val" style="color:#dc2626">${cog.toLocaleString()} ر</span></div>
+                        <div class="net-row" style="background:#ecfdf5"><span style="color:#065f46">الربح الإجمالي</span><span style="color:#065f46">${grossP.toLocaleString()} ر</span></div>
+                    </div>
+                    <div class="section">
+                        <h3>💸 المصروفات المحتسبة</h3>
+                        <table><thead><tr><th>البيان</th><th style="text-align:center">النوع</th><th style="text-align:left">المبلغ</th></tr></thead><tbody>${expRows}</tbody>
+                        <tfoot><tr style="background:#fef2f2;font-weight:900"><td>الإجمالي</td><td></td><td style="text-align:left;color:#dc2626">${(-expT).toLocaleString()} ر</td></tr></tfoot></table>
+                        ${exclExpCats.length>0?`<div class="row" style="margin-top:8px"><span class="lbl" style="color:#94a3b8">مصروفات مستثناة (${exclExpCats.length})</span><span style="color:#94a3b8">${exclT.toLocaleString()} ر</span></div>`:''}
+                        <div class="net-row" style="background:${netP>=0?'#eff6ff':'#fef2f2'};margin-top:10px"><span style="color:${netP>=0?'#1d4ed8':'#dc2626'}">صافي الربح / الخسارة</span><span style="color:${netP>=0?'#1d4ed8':'#dc2626'}">${netP.toLocaleString()} ر</span></div>
+                    </div>
+                    <div class="section">
+                        <h3>📊 إحصائيات الفترة</h3>
+                        <div class="row"><span class="lbl">عدد الفواتير</span><span class="val">${sales.length}</span></div>
+                        <div class="row"><span class="lbl">متوسط الفاتورة</span><span class="val">${(sales.length?Math.round(grossSales/sales.length):0).toLocaleString()} ر</span></div>
+                        <div class="row"><span class="lbl">إجمالي القطع المباعة</span><span class="val">${qtySold.toLocaleString()}</span></div>
+                        <div class="row"><span class="lbl">التكلفة (${cogMode==='manual'?'يدوي':'تلقائي'})</span><span class="val">${cog.toLocaleString()} ر</span></div>
+                        <div class="row"><span class="lbl">هامش الربح</span><span class="val">${margin}%</span></div>
+                    </div>
+                    <div class="footer">نظام البرق — تقرير الأرباح والخسائر | ${periodLabel}</div>
+                    <${'script'}>window.onload=()=>window.print();</${'script'}></body></html>`;
+                    const w = window.open('','_blank','width=900,height=700');
+                    w.document.write(html);
+                    w.document.close();
                 };
 
                 return (
@@ -3545,6 +3891,12 @@
                                 <select value={yr} onChange={x=>setYr(Number(x.target.value))} className="bg-white border rounded-xl px-3 py-2 text-sm font-bold shadow-sm">
                                     {[2023,2024,2025,2026,2027].map(y=><option key={y} value={y}>{y}</option>)}
                                 </select>
+                                <button onClick={printQuickReport} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black shadow-sm transition-all hover:opacity-90 active:scale-95" style={{background:'#059669',color:'white'}}>
+                                    <i className="ph ph-lightning"></i> تقرير سريع
+                                </button>
+                                <button onClick={printReport} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black shadow-sm transition-all hover:opacity-90 active:scale-95" style={{background:'#1e293b',color:'white'}}>
+                                    <i className="ph ph-printer"></i> طباعة التقرير
+                                </button>
                             </div>
                         </div>
 
@@ -3570,16 +3922,59 @@
                                 <h3 className="font-black text-slate-700 mb-3 pb-2 border-b text-base flex items-center gap-2">
                                     <i className="ph-fill ph-receipt text-blue-500"></i> قائمة الدخل
                                 </h3>
-                                {[
-                                    {l:'إجمالي المبيعات',v:grossSales},
-                                    {l:'صافي المبيعات',v:netSales,bold:true},
-                                    {l:'(+) دخل الرجيع',v:scrapInc,c:'text-orange-600'},
-                                ].map(r=>(
-                                    <div key={r.l} className="flex justify-between py-2 border-b border-slate-100">
-                                        <span className={"text-sm font-bold "+(r.bold?'font-black text-slate-800':'text-slate-600')}>{r.l}</span>
-                                        <span className={"font-black text-sm "+(r.c||'text-slate-700')}>{Number(r.v).toLocaleString()} ر</span>
+                                {/* إجمالي المبيعات */}
+                                <div className="flex justify-between py-2 border-b border-slate-100">
+                                    <span className="text-sm font-bold text-slate-600">إجمالي المبيعات</span>
+                                    <span className="font-black text-sm text-slate-700">{grossSales.toLocaleString()} ر</span>
+                                </div>
+
+                                {/* شبكة */}
+                                <div className="rounded-xl overflow-hidden my-2" style={{background:'rgba(99,165,255,0.06)',border:'1px solid rgba(99,165,255,0.2)'}}>
+                                    <div className="flex justify-between px-3 py-1.5 border-b border-blue-100/30">
+                                        <span className="text-xs font-bold text-blue-500">مبيعات شبكة</span>
+                                        <span className="font-black text-xs text-blue-600">{cardSales.toLocaleString()} ر</span>
                                     </div>
-                                ))}
+                                    <div className="flex justify-between px-3 py-1.5 border-b border-blue-100/30">
+                                        <span className="text-xs font-bold text-red-400">(−) مصروفات شبكة</span>
+                                        <span className="font-black text-xs text-red-500">{expTCard.toLocaleString()} ر</span>
+                                    </div>
+                                    <div className="flex justify-between px-3 py-2">
+                                        <span className="text-sm font-black text-blue-700">صافي شبكة</span>
+                                        <span className={`font-black text-sm ${netCard>=0?'text-blue-700':'text-red-600'}`}>{netCard.toLocaleString()} ر</span>
+                                    </div>
+                                </div>
+
+                                {/* كاش */}
+                                <div className="rounded-xl overflow-hidden my-2" style={{background:'rgba(52,211,153,0.06)',border:'1px solid rgba(52,211,153,0.2)'}}>
+                                    <div className="flex justify-between px-3 py-1.5 border-b border-emerald-100/30">
+                                        <span className="text-xs font-bold text-emerald-600">مبيعات كاش</span>
+                                        <span className="font-black text-xs text-emerald-600">{cashSales.toLocaleString()} ر</span>
+                                    </div>
+                                    <div className="flex justify-between px-3 py-1.5 border-b border-emerald-100/30">
+                                        <span className="text-xs font-bold text-red-400">(−) مصروفات كاش</span>
+                                        <span className="font-black text-xs text-red-500">{expTCash.toLocaleString()} ر</span>
+                                    </div>
+                                    <div className="flex justify-between px-3 py-2">
+                                        <span className="text-sm font-black text-emerald-700">صافي كاش</span>
+                                        <span className={`font-black text-sm ${netCash>=0?'text-emerald-700':'text-red-600'}`}>{netCash.toLocaleString()} ر</span>
+                                    </div>
+                                </div>
+
+                                {/* دخل الرجيع */}
+                                <div className="flex justify-between py-2 border-b border-slate-100">
+                                    <span className="text-sm font-bold text-orange-600">(+) دخل الرجيع</span>
+                                    <span className="font-black text-sm text-orange-600">{scrapInc.toLocaleString()} ر</span>
+                                </div>
+
+                                {/* الكميات */}
+                                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                                    <span className="text-sm font-bold text-slate-500">🔋 عدد البطاريات المشتراة</span>
+                                    <span className="font-black text-sm text-slate-700">{qtyPurchased.toLocaleString()} قطعة</span>
+                                </div>
+                                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                                    <span className="text-sm font-bold text-slate-500">🔋 عدد البطاريات المباعة</span>
+                                    <span className="font-black text-sm text-slate-700">{qtySold.toLocaleString()} قطعة</span>
+                                </div>
 
                                 {/* تكلفة المبيعات - قابلة للتعديل */}
                                 <div className="py-2 border-b border-slate-100">
@@ -3609,12 +4004,21 @@
                                 </div>
 
                                 <p className="text-xs font-black text-slate-400 uppercase mt-3 mb-1">المصروفات المحتسبة</p>
-                                {inclExpCats.map(([k,v])=>(
-                                    <div key={k} className="flex justify-between py-1.5 border-b border-slate-100 pr-3">
-                                        <span className="text-sm font-bold text-slate-500">{k}</span>
-                                        <span className="font-black text-red-500 text-sm">{(-v).toLocaleString()} ر</span>
+                                {inclExpCats.map(([k,v])=>{
+                                    const det = allExpDetail[k]||{cash:0,card:0};
+                                    const isCard = det.card > 0 && det.cash === 0;
+                                    const isCash = det.cash > 0 && det.card === 0;
+                                    const isMix  = det.card > 0 && det.cash > 0;
+                                    return (
+                                    <div key={k} className="flex items-center justify-between py-1.5 border-b border-slate-100 pr-3 gap-2">
+                                        <span className="text-sm font-bold text-slate-500 flex-1">{k}</span>
+                                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0 ${isCard?'bg-blue-50 text-blue-600':isCash?'bg-emerald-50 text-emerald-600':'bg-violet-50 text-violet-600'}`}>
+                                            {isCard?'شبكة':isCash?'كاش':'مختلط'}
+                                        </span>
+                                        <span className="font-black text-red-500 text-sm flex-shrink-0">{(-v).toLocaleString()} ر</span>
                                     </div>
-                                ))}
+                                    );
+                                })}
                                 {exclExpCats.length > 0 && (
                                     <div className="flex justify-between py-1.5 border-b border-slate-100 pr-3">
                                         <span className="text-xs font-bold text-slate-400 flex items-center gap-1"><i className="ph ph-eye-slash"></i> مصروفات مستثناة ({exclExpCats.length})</span>
@@ -6810,15 +7214,15 @@
 
             // مكون Modal عام
             const Modal = ({ title, onClose, children, width = "max-w-xl" }) => (
-                <div className="fixed inset-0 z-[100] modal-overlay flex items-center justify-center p-4">
-                    <div className={`modal-glass w-full ${width} rounded-3xl overflow-hidden animate-[fadeIn_0.25s_ease-out] flex flex-col max-h-[90vh]`}>
-                        <div className="flex justify-between items-center p-6 shrink-0" style={{borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
-                            <h3 className="text-xl font-black" style={{color:'var(--text-primary)'}}>{title}</h3>
+                <div className="fixed inset-0 z-[100] modal-overlay flex items-end md:items-center justify-center md:p-4">
+                    <div className={`modal-glass w-full md:${width} rounded-t-3xl md:rounded-3xl overflow-hidden flex flex-col`} style={{maxHeight:'88vh',animation:'slideUp 0.28s ease-out'}}>
+                        <div className="flex justify-between items-center p-5 shrink-0" style={{borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
+                            <h3 className="text-lg font-black" style={{color:'var(--text-primary)'}}>{title}</h3>
                             <button onClick={onClose} className="p-2 rounded-full transition-all" style={{background:'rgba(255,255,255,0.08)',color:'var(--text-secondary)'}}>
                                 <i className="ph ph-x text-xl"></i>
                             </button>
                         </div>
-                        <div className="p-6 overflow-y-auto custom-scroll" style={{color:'var(--text-primary)'}}>
+                        <div className="p-5 overflow-y-auto custom-scroll" style={{color:'var(--text-primary)'}}>
                             {children}
                         </div>
                     </div>
@@ -6826,7 +7230,7 @@
             );
 
             return (
-                <div className="min-h-screen flex flex-col md:flex-row font-cairo">
+                <div className="flex flex-col md:flex-row font-cairo" style={{height:'100dvh',height:'100vh',overflow:'hidden'}}>
                     <div id="print-area">
                         <PrintTemplate data={printData} settings={settings} type={printType} reportStats={reportStatsForPrint} />
                     </div>
@@ -6937,7 +7341,7 @@
                         </div>
                     </aside>
                     
-                    <main className="no-print flex-1 p-4 md:p-8 relative overflow-y-auto h-screen custom-scroll" style={{background:'rgba(4,10,25,0.3)'}}>
+                    <main className="no-print flex-1 p-4 md:p-8 relative overflow-y-auto overflow-x-hidden h-full custom-scroll" style={{background:'rgba(4,10,25,0.3)'}}>
                         {/* مؤشر المزامنة + الإشعارات */}
                         <div className="fixed top-4 left-4 z-[300] flex items-center gap-2">
                             <div className="relative">
