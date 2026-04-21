@@ -195,60 +195,96 @@
             background-color: rgba(0,0,0,0.04) !important;
         }
 
-        /* LIGHT theme overrides */
-        body[data-theme="light"]::before,
-        body[data-theme="light"]::after,
-        body[data-theme="night"]::before,
-        body[data-theme="night"]::after,
-        body[data-theme="neumorphism"]::before,
-        body[data-theme="neumorphism"]::after { display: none !important; }
+        /* ===== HIDE ANIMATED BG FOR NON-GLASS THEMES ===== */
+        body[data-theme="light"]::before,   body[data-theme="light"]::after,
+        body[data-theme="night"]::before,   body[data-theme="night"]::after,
+        body[data-theme="neumorphism"]::before, body[data-theme="neumorphism"]::after
+        { display: none !important; }
 
-        body[data-theme="light"] .sidebar-glass {
-            background: linear-gradient(180deg,#1e293b,#0f172a) !important;
-            border-color: rgba(0,0,0,0.1) !important;
-        }
-        body[data-theme="light"] .nav-item { color: rgba(255,255,255,0.6) !important; }
+        /* ================================================
+           ☀️ LIGHT THEME — فاتح نهاري (إصلاح شامل)
+        ================================================ */
+        body[data-theme="light"] { background: #f0f4f8 !important; color: #0f172a !important; }
+        body[data-theme="light"] .sidebar-glass { background: linear-gradient(180deg,#1e293b,#0f172a) !important; border-color: rgba(0,0,0,0.1) !important; }
+        body[data-theme="light"] .nav-item { color: rgba(255,255,255,0.65) !important; }
         body[data-theme="light"] .nav-item:hover { background: rgba(255,255,255,0.12) !important; color: white !important; }
-        body[data-theme="light"] .nav-item.active { background: rgba(59,130,246,0.45) !important; color: white !important; border-color: rgba(99,165,255,0.35) !important; }
+        body[data-theme="light"] .nav-item.active { background: rgba(59,130,246,0.5) !important; color: white !important; border-color: rgba(99,165,255,0.4) !important; }
         body[data-theme="light"] main { background: #f0f4f8 !important; }
-        body[data-theme="light"] main .bg-white { background: #ffffff !important; border-color: #e2e8f0 !important; }
+        /* Cards */
+        body[data-theme="light"] main .bg-white,
+        body[data-theme="light"] main .rounded-2xl:not(button):not(span):not(td),
+        body[data-theme="light"] main .rounded-3xl:not(button):not(span) { background: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
+        /* Backgrounds */
+        body[data-theme="light"] main .bg-slate-50, body[data-theme="light"] main .bg-slate-100 { background: #f8fafc !important; }
+        body[data-theme="light"] main .bg-slate-800, body[data-theme="light"] main .bg-slate-900 { background: #1e293b !important; color: white !important; }
+        body[data-theme="light"] main .bg-emerald-50, body[data-theme="light"] main .bg-emerald-100 { background: #ecfdf5 !important; }
+        body[data-theme="light"] main .bg-blue-50,    body[data-theme="light"] main .bg-blue-100    { background: #eff6ff !important; }
+        body[data-theme="light"] main .bg-red-50,     body[data-theme="light"] main .bg-red-100     { background: #fef2f2 !important; }
+        body[data-theme="light"] main .bg-amber-50,   body[data-theme="light"] main .bg-amber-100   { background: #fffbeb !important; }
+        body[data-theme="light"] main .bg-violet-50,  body[data-theme="light"] main .bg-violet-100  { background: #f5f3ff !important; }
+        body[data-theme="light"] main .bg-purple-50   { background: #faf5ff !important; }
+        body[data-theme="light"] main .bg-green-50    { background: #f0fdf4 !important; }
+        body[data-theme="light"] main .bg-cyan-50     { background: #ecfeff !important; }
+        body[data-theme="light"] main .bg-orange-50   { background: #fff7ed !important; }
+        body[data-theme="light"] main .bg-indigo-50   { background: #eef2ff !important; }
+        /* Text */
+        body[data-theme="light"] main h1, body[data-theme="light"] main h2, body[data-theme="light"] main h3 { color: #0f172a !important; }
         body[data-theme="light"] main .text-slate-800, body[data-theme="light"] main .text-slate-900 { color: #0f172a !important; }
         body[data-theme="light"] main .text-slate-700 { color: #1e293b !important; }
         body[data-theme="light"] main .text-slate-600 { color: #374151 !important; }
         body[data-theme="light"] main .text-slate-500 { color: #64748b !important; }
         body[data-theme="light"] main .text-slate-400 { color: #94a3b8 !important; }
+        body[data-theme="light"] main .text-emerald-700, body[data-theme="light"] main .text-emerald-600 { color: #047857 !important; }
+        body[data-theme="light"] main .text-blue-700,   body[data-theme="light"] main .text-blue-600   { color: #1d4ed8 !important; }
+        body[data-theme="light"] main .text-red-600,    body[data-theme="light"] main .text-red-500    { color: #dc2626 !important; }
+        body[data-theme="light"] main .text-amber-700,  body[data-theme="light"] main .text-amber-600  { color: #b45309 !important; }
+        body[data-theme="light"] main .text-violet-700, body[data-theme="light"] main .text-violet-600 { color: #6d28d9 !important; }
+        body[data-theme="light"] main .text-purple-700, body[data-theme="light"] main .text-purple-600 { color: #7e22ce !important; }
+        body[data-theme="light"] main .text-green-700,  body[data-theme="light"] main .text-green-600  { color: #15803d !important; }
+        body[data-theme="light"] main .text-cyan-600    { color: #0891b2 !important; }
+        body[data-theme="light"] main .text-orange-600  { color: #ea580c !important; }
+        body[data-theme="light"] main .text-indigo-600  { color: #4f46e5 !important; }
+        /* Tables */
         body[data-theme="light"] main thead tr { background: #334155 !important; }
-        body[data-theme="light"] main th { color: rgba(255,255,255,0.9) !important; }
-        body[data-theme="light"] main td { color: #374151 !important; border-color: #f1f5f9 !important; }
+        body[data-theme="light"] main th  { color: rgba(255,255,255,0.9) !important; }
+        body[data-theme="light"] main td  { color: #374151 !important; border-color: #f1f5f9 !important; }
         body[data-theme="light"] main tbody tr:hover { background: #f8fafc !important; }
-        body[data-theme="light"] main h1, body[data-theme="light"] main h2, body[data-theme="light"] main h3 { color: #0f172a !important; }
-        body[data-theme="light"] .input-field { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+        /* Inputs */
+        body[data-theme="light"] .input-field { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important; }
         body[data-theme="light"] .input-field::placeholder { color: #94a3b8 !important; }
+        body[data-theme="light"] .input-label { color: #374151 !important; }
+        /* Chips */
         body[data-theme="light"] .chip { background: #ffffff !important; border-color: #e2e8f0 !important; color: #64748b !important; }
-        body[data-theme="light"] .chip.active { background: #2563eb !important; color: white !important; }
-        body[data-theme="light"] .modal-glass { background: #ffffff !important; border-color: #e2e8f0 !important; }
-        body[data-theme="light"] .modal-glass * { color: #0f172a; }
-        body[data-theme="light"] .modal-overlay { background: rgba(0,0,0,0.5) !important; }
-        body[data-theme="light"] main button.bg-slate-900, body[data-theme="light"] main button.bg-slate-800 { background: #1e293b !important; border-color: #334155 !important; color: white !important; }
-        body[data-theme="light"] main .bg-slate-50 { background: #f8fafc !important; }
-        body[data-theme="light"] main .bg-slate-100 { background: #f1f5f9 !important; }
-        body[data-theme="light"] main .bg-slate-900 { background: #0f172a !important; color: white; }
-        body[data-theme="light"] main .bg-emerald-50 { background: #ecfdf5 !important; }
-        body[data-theme="light"] main .bg-blue-50 { background: #eff6ff !important; }
-        body[data-theme="light"] main .bg-red-50 { background: #fef2f2 !important; }
-        body[data-theme="light"] main .bg-amber-50 { background: #fffbeb !important; }
-        body[data-theme="light"] main .bg-violet-50 { background: #f5f3ff !important; }
-        body[data-theme="light"] main .text-emerald-700 { color: #047857 !important; }
-        body[data-theme="light"] main .text-blue-700, body[data-theme="light"] main .text-blue-600 { color: #1d4ed8 !important; }
-        body[data-theme="light"] main .text-red-600 { color: #dc2626 !important; }
-        body[data-theme="light"] main .text-amber-700 { color: #b45309 !important; }
-        body[data-theme="light"] main .text-violet-700 { color: #6d28d9 !important; }
+        body[data-theme="light"] .chip.active { background: #2563eb !important; border-color: #2563eb !important; color: white !important; }
+        /* Modals */
+        body[data-theme="light"] .modal-glass { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; }
+        body[data-theme="light"] .modal-glass * { color: #0f172a !important; }
+        body[data-theme="light"] .modal-glass .input-field { background: #f8fafc !important; border-color: #cbd5e1 !important; }
+        body[data-theme="light"] .modal-overlay { background: rgba(0,0,0,0.4) !important; backdrop-filter: blur(4px) !important; }
+        /* Buttons */
+        body[data-theme="light"] main button.bg-slate-900, body[data-theme="light"] main button.bg-slate-800 { background: #1e293b !important; color: white !important; }
         body[data-theme="light"] .pay-btn-unselected { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #475569 !important; }
+        /* Notifications */
         body[data-theme="light"] .notification-glass { background: #1e293b !important; border-color: #334155 !important; color: white !important; }
+        /* Stat cards text fix */
+        body[data-theme="light"] main .stat-card .label { color: rgba(255,255,255,0.75) !important; }
+        body[data-theme="light"] main .stat-card .val { color: #ffffff !important; }
+        /* var(--text-*) overrides for light */
+        body[data-theme="light"] { --text-primary: #0f172a; --text-secondary: #374151; --text-muted: #64748b; --card-bg-1: #ffffff; --card-border-1: #e2e8f0; --input-bg: #ffffff; --input-border: #cbd5e1; }
+        body[data-theme="light"] [style*="var(--text-primary)"] { color: #0f172a !important; }
+        body[data-theme="light"] [style*="var(--text-secondary)"] { color: #374151 !important; }
+        body[data-theme="light"] [style*="var(--text-muted)"] { color: #64748b !important; }
+        body[data-theme="light"] [style*="card-bg-1"] { background: #ffffff !important; }
+        body[data-theme="light"] [style*="card-border-1"] { border-color: #e2e8f0 !important; }
+        /* Month accordion in light */
+        body[data-theme="light"] .month-accordion { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important; }
+        /* Cloud status */
+        body[data-theme="light"] .cloud-status.connected { background: rgba(4,120,87,0.1) !important; border-color: rgba(4,120,87,0.3) !important; color: #047857 !important; }
+        body[data-theme="light"] .cloud-status.disconnected { background: rgba(220,38,38,0.1) !important; color: #dc2626 !important; }
 
         /* NIGHT theme overrides */
         body[data-theme="night"]::before { display: none !important; }
-        body[data-theme="night"] { background: #080808 !important; }
+        body[data-theme="night"] { background: #080808 !important; --text-primary: rgba(255,255,255,0.9); --text-secondary: rgba(255,255,255,0.55); --text-muted: rgba(255,255,255,0.3); --card-bg-1: rgba(255,255,255,0.04); --card-border-1: rgba(255,255,255,0.07); }
         body[data-theme="night"] .sidebar-glass { background: linear-gradient(180deg,#111,#0d0d0d) !important; border-color: rgba(255,255,255,0.05) !important; }
         body[data-theme="night"] main { background: #0c0c0c !important; }
         body[data-theme="night"] main .bg-white { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.06) !important; }
@@ -261,238 +297,105 @@
         body[data-theme="night"] .modal-glass { background: rgba(12,12,12,0.97) !important; }
 
         /* ================================================
-           NEUMORPHISM THEME — رمادي ناعم عصري
-           ألوان: رمادي + أسود/أبيض + أخضر/أحمر/أزرق
+           ⚪ NEUMORPHISM THEME — رمادي ناعم (إصلاح شامل)
         ================================================ */
-        body[data-theme="neumorphism"] { background: #e4e8ed !important; }
-
-        /* — Sidebar — */
-        body[data-theme="neumorphism"] .sidebar-glass {
-            background: linear-gradient(180deg,#1a2438 0%,#111827 100%) !important;
-            border-right: none !important;
-            box-shadow: 3px 0 16px rgba(0,0,0,0.18) !important;
-        }
-        body[data-theme="neumorphism"] .nav-item { color: rgba(255,255,255,0.5) !important; }
-        body[data-theme="neumorphism"] .nav-item:hover {
-            background: rgba(255,255,255,0.07) !important;
-            color: rgba(255,255,255,0.85) !important;
-        }
-        body[data-theme="neumorphism"] .nav-item.active {
-            background: rgba(37,99,235,0.35) !important;
-            color: white !important;
-            box-shadow: 0 2px 10px rgba(37,99,235,0.2) !important;
-        }
-
-        /* — Main area — */
-        body[data-theme="neumorphism"] main { background: #e4e8ed !important; }
-
-        /* — Cards (رفع خارجي ناعم) — */
-        body[data-theme="neumorphism"] main .bg-white,
-        body[data-theme="neumorphism"] main .glass-card,
-        body[data-theme="neumorphism"] main [style*="card-bg-1"],
-        body[data-theme="neumorphism"] main .rounded-2xl:not(button):not(span):not(td):not(th),
-        body[data-theme="neumorphism"] main .rounded-3xl:not(button):not(span) {
+        body[data-theme="neumorphism"] {
             background: #e4e8ed !important;
-            border: none !important;
-            box-shadow: var(--neu-shadow) !important;
-            backdrop-filter: none !important;
+            --text-primary: #111827; --text-secondary: #374151; --text-muted: #6b7280;
+            --card-bg-1: #e4e8ed; --card-border-1: transparent;
+            --input-bg: #e4e8ed; --input-border: transparent;
         }
-        /* غمز داخلي للحقول والـ inset */
-        body[data-theme="neumorphism"] main .bg-slate-50,
-        body[data-theme="neumorphism"] main .bg-slate-100 {
-            background: #d8dde4 !important;
-            box-shadow: var(--neu-inset-sm) !important;
-            border: none !important;
-        }
-        /* Header الجداول */
-        body[data-theme="neumorphism"] main thead tr {
-            background: #d4d9e0 !important;
-            box-shadow: none !important;
-        }
-        body[data-theme="neumorphism"] main th {
-            color: #374151 !important;
-            font-weight: 800 !important;
-            letter-spacing: 0.03em;
-        }
-        body[data-theme="neumorphism"] main td {
-            color: #1f2937 !important;
-            border-color: rgba(0,0,0,0.05) !important;
-        }
-        body[data-theme="neumorphism"] main tbody tr:hover {
-            background: rgba(255,255,255,0.55) !important;
-        }
-
-        /* — Typography — */
-        body[data-theme="neumorphism"] main h1,
-        body[data-theme="neumorphism"] main h2,
-        body[data-theme="neumorphism"] main h3 { color: #111827 !important; }
-        body[data-theme="neumorphism"] main .text-slate-800,
-        body[data-theme="neumorphism"] main .text-slate-900 { color: #111827 !important; }
+        /* var() overrides */
+        body[data-theme="neumorphism"] [style*="var(--text-primary)"]   { color: #111827 !important; }
+        body[data-theme="neumorphism"] [style*="var(--text-secondary)"] { color: #374151 !important; }
+        body[data-theme="neumorphism"] [style*="var(--text-muted)"]     { color: #6b7280 !important; }
+        body[data-theme="neumorphism"] [style*="card-bg-1"]             { background: #e4e8ed !important; box-shadow: var(--neu-shadow) !important; border: none !important; }
+        body[data-theme="neumorphism"] [style*="card-border-1"]         { border: none !important; }
+        /* Sidebar */
+        body[data-theme="neumorphism"] .sidebar-glass { background: linear-gradient(180deg,#1a2438 0%,#111827 100%) !important; border-right: none !important; box-shadow: 3px 0 16px rgba(0,0,0,0.18) !important; }
+        body[data-theme="neumorphism"] .nav-item { color: rgba(255,255,255,0.5) !important; }
+        body[data-theme="neumorphism"] .nav-item:hover { background: rgba(255,255,255,0.07) !important; color: rgba(255,255,255,0.85) !important; }
+        body[data-theme="neumorphism"] .nav-item.active { background: rgba(37,99,235,0.35) !important; color: white !important; box-shadow: 0 2px 10px rgba(37,99,235,0.2) !important; }
+        /* Main + Cards */
+        body[data-theme="neumorphism"] main { background: #e4e8ed !important; }
+        body[data-theme="neumorphism"] main .bg-white,
+        body[data-theme="neumorphism"] main .rounded-2xl:not(button):not(span):not(td):not(th):not(a),
+        body[data-theme="neumorphism"] main .rounded-3xl:not(button):not(span):not(a) { background: #e4e8ed !important; border: none !important; box-shadow: var(--neu-shadow) !important; backdrop-filter: none !important; }
+        body[data-theme="neumorphism"] main .bg-slate-50, body[data-theme="neumorphism"] main .bg-slate-100 { background: #d8dde4 !important; box-shadow: var(--neu-inset-sm) !important; border: none !important; }
+        body[data-theme="neumorphism"] main .bg-slate-800, body[data-theme="neumorphism"] main .bg-slate-900 { background: #1f2937 !important; color: white !important; box-shadow: var(--neu-shadow) !important; }
+        /* Tables */
+        body[data-theme="neumorphism"] main thead tr { background: #d4d9e0 !important; box-shadow: none !important; }
+        body[data-theme="neumorphism"] main th { color: #374151 !important; font-weight: 800 !important; }
+        body[data-theme="neumorphism"] main td { color: #1f2937 !important; border-color: rgba(0,0,0,0.05) !important; }
+        body[data-theme="neumorphism"] main tbody tr:hover { background: rgba(255,255,255,0.55) !important; }
+        /* Typography */
+        body[data-theme="neumorphism"] main h1, body[data-theme="neumorphism"] main h2, body[data-theme="neumorphism"] main h3 { color: #111827 !important; }
+        body[data-theme="neumorphism"] main .text-slate-800, body[data-theme="neumorphism"] main .text-slate-900 { color: #111827 !important; }
         body[data-theme="neumorphism"] main .text-slate-700 { color: #1f2937 !important; }
         body[data-theme="neumorphism"] main .text-slate-600 { color: #374151 !important; }
-        body[data-theme="neumorphism"] main .text-slate-500,
-        body[data-theme="neumorphism"] main .text-slate-400 { color: #6b7280 !important; }
-
-        /* — Input fields — */
-        body[data-theme="neumorphism"] .input-field {
-            background: #e4e8ed !important;
-            border: none !important;
-            color: #111827 !important;
-            box-shadow: var(--neu-inset) !important;
-        }
-        body[data-theme="neumorphism"] .input-field::placeholder { color: #9ca3af !important; }
-        body[data-theme="neumorphism"] .input-field:focus {
-            box-shadow: var(--neu-inset), 0 0 0 2px rgba(37,99,235,0.25) !important;
-        }
-        body[data-theme="neumorphism"] .input-field option { background: #e4e8ed !important; color: #111827 !important; }
-
-        /* — Chips/Filters — */
-        body[data-theme="neumorphism"] .chip {
-            background: #e4e8ed !important; border: none !important; color: #374151 !important;
-            box-shadow: var(--neu-shadow-xs) !important;
-        }
-        body[data-theme="neumorphism"] .chip.active {
-            background: #111827 !important; color: white !important;
-            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.25) !important;
-        }
-        body[data-theme="neumorphism"] .chip:hover:not(.active) {
-            background: #f0f3f6 !important;
-        }
-
-        /* — Modals — */
-        body[data-theme="neumorphism"] .modal-overlay { background: rgba(0,0,0,0.3) !important; }
-        body[data-theme="neumorphism"] .modal-glass {
-            background: #e4e8ed !important; border: none !important;
-            box-shadow: 12px 12px 28px #c0c6cd, -12px -12px 28px #f8fafb !important;
-        }
-        body[data-theme="neumorphism"] .modal-glass .input-field {
-            box-shadow: var(--neu-inset) !important;
-        }
-        body[data-theme="neumorphism"] .modal-glass h2,
-        body[data-theme="neumorphism"] .modal-glass h3,
-        body[data-theme="neumorphism"] .modal-glass label,
-        body[data-theme="neumorphism"] .modal-glass span,
-        body[data-theme="neumorphism"] .modal-glass p { color: #111827 !important; }
-
-        /* — Buttons — */
-        /* زر داكن (أسود) */
-        body[data-theme="neumorphism"] main button.bg-slate-900,
-        body[data-theme="neumorphism"] main button.bg-slate-800 {
-            background: #1f2937 !important; color: white !important;
-            border: none !important;
-            box-shadow: 3px 3px 7px #c0c6cd, -1px -1px 4px #f0f3f6 !important;
-        }
-        body[data-theme="neumorphism"] main button.bg-slate-900:hover,
-        body[data-theme="neumorphism"] main button.bg-slate-800:hover {
-            background: #111827 !important;
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2) !important;
-        }
-        /* زر أزرق */
-        body[data-theme="neumorphism"] main button.bg-blue-600 {
-            background: #2563eb !important; color: white !important;
-            box-shadow: 3px 3px 7px rgba(37,99,235,0.25), -1px -1px 4px #f0f3f6 !important;
-        }
-        /* زر أخضر */
-        body[data-theme="neumorphism"] main button.bg-emerald-600,
-        body[data-theme="neumorphism"] main button.bg-green-600 {
-            background: #16a34a !important; color: white !important;
-            box-shadow: 3px 3px 7px rgba(22,163,74,0.2) !important;
-        }
-        /* زر أحمر */
-        body[data-theme="neumorphism"] main button.bg-red-500,
-        body[data-theme="neumorphism"] main button.bg-red-600 {
-            background: #dc2626 !important; color: white !important;
-            box-shadow: 3px 3px 7px rgba(220,38,38,0.2) !important;
-        }
-        body[data-theme="neumorphism"] main button.bg-violet-600 {
-            background: #7c3aed !important; color: white !important;
-            box-shadow: 3px 3px 7px rgba(124,58,237,0.2) !important;
-        }
-
-        /* — MonthAccordion — */
-        body[data-theme="neumorphism"] .month-accordion {
-            background: #e4e8ed !important;
-            border: none !important;
-            box-shadow: var(--neu-shadow) !important;
-        }
-        body[data-theme="neumorphism"] .month-accordion button {
-            background: transparent !important;
-            box-shadow: none !important;
-        }
-
-        /* — Stat cards — */
-        body[data-theme="neumorphism"] main .stat-card {
-            box-shadow: var(--neu-shadow) !important;
-            border: none !important;
-        }
-
-        /* — Colored badges (readable on grey) — */
-        body[data-theme="neumorphism"] .badge-emerald { background: rgba(22,163,74,0.12) !important; color: #15803d !important; border: 1px solid rgba(22,163,74,0.2) !important; }
-        body[data-theme="neumorphism"] .badge-blue    { background: rgba(37,99,235,0.1) !important;  color: #1d4ed8 !important; border: 1px solid rgba(37,99,235,0.2) !important; }
-        body[data-theme="neumorphism"] .badge-red     { background: rgba(220,38,38,0.1) !important;  color: #b91c1c !important; border: 1px solid rgba(220,38,38,0.2) !important; }
-        body[data-theme="neumorphism"] .badge-amber   { background: rgba(217,119,6,0.1) !important;  color: #92400e !important; border: 1px solid rgba(217,119,6,0.2) !important; }
-
-        /* — Notifications — */
-        body[data-theme="neumorphism"] .notification-glass {
-            background: #1f2937 !important; border: none !important; color: white !important;
-            box-shadow: 6px 6px 14px #c0c6cd, -2px -2px 8px #f0f3f6 !important;
-        }
-        body[data-theme="neumorphism"] .sidebar-license {
-            background: rgba(255,255,255,0.08) !important;
-            border-color: rgba(255,255,255,0.06) !important;
-        }
-
-        /* — Pay method buttons in neumorphism — */
-        body[data-theme="neumorphism"] .pay-btn-unselected {
-            background: #e4e8ed !important; border: none !important; color: #374151 !important;
-            box-shadow: var(--neu-shadow-sm) !important;
-        }
-
-        /* — Neu specific color overrides inline rgba — */
-        /* الأخضر */
+        body[data-theme="neumorphism"] main .text-slate-500, body[data-theme="neumorphism"] main .text-slate-400 { color: #6b7280 !important; }
+        body[data-theme="neumorphism"] .font-black { color: #111827 !important; }
+        /* Color accents */
         body[data-theme="neumorphism"] .text-emerald-600 { color: #16a34a !important; }
         body[data-theme="neumorphism"] .text-emerald-700 { color: #15803d !important; }
-        body[data-theme="neumorphism"] .bg-emerald-100   { background: rgba(22,163,74,0.1) !important; }
-        body[data-theme="neumorphism"] .bg-emerald-50    { background: rgba(22,163,74,0.07) !important; }
-        /* الأحمر */
         body[data-theme="neumorphism"] .text-red-600     { color: #dc2626 !important; }
         body[data-theme="neumorphism"] .text-red-500     { color: #ef4444 !important; }
-        body[data-theme="neumorphism"] .bg-red-100       { background: rgba(220,38,38,0.1) !important; }
-        body[data-theme="neumorphism"] .bg-red-50        { background: rgba(220,38,38,0.07) !important; }
-        /* الأزرق */
         body[data-theme="neumorphism"] .text-blue-600    { color: #2563eb !important; }
         body[data-theme="neumorphism"] .text-blue-700    { color: #1d4ed8 !important; }
-        body[data-theme="neumorphism"] .bg-blue-100      { background: rgba(37,99,235,0.1) !important; }
-        body[data-theme="neumorphism"] .bg-blue-50       { background: rgba(37,99,235,0.07) !important; }
-        /* الرمادي الداكن للنصوص الهامة */
-        body[data-theme="neumorphism"] .font-black       { color: #111827 !important; }
-
-        /* — inline style rgba overrides for neumorphism — */
-        /* month accordion in neumorphism */
-        body[data-theme="neumorphism"] .month-accordion {
-            background: #e4e8ed !important;
-            border: none !important;
-            box-shadow: var(--neu-shadow) !important;
-            margin-bottom: 10px;
-        }
-        body[data-theme="neumorphism"] .month-accordion > button {
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-        }
-        /* Force neumorphism card style via var */
-        body[data-theme="neumorphism"] main .rounded-2xl {
-            box-shadow: var(--neu-shadow) !important;
-        }
-        body[data-theme="neumorphism"] main .rounded-3xl {
-            box-shadow: var(--neu-shadow) !important;
-        }
-        /* تفادي الظلال المضاعفة على أزرار وبادجات */
-        body[data-theme="neumorphism"] main button.rounded-2xl,
-        body[data-theme="neumorphism"] main span.rounded-2xl,
-        body[data-theme="neumorphism"] main .badge,
-        body[data-theme="neumorphism"] main td.rounded-2xl { box-shadow: none !important; }
-
+        body[data-theme="neumorphism"] .text-amber-600, body[data-theme="neumorphism"] .text-amber-700 { color: #b45309 !important; }
+        body[data-theme="neumorphism"] .text-violet-600, body[data-theme="neumorphism"] .text-violet-700 { color: #6d28d9 !important; }
+        body[data-theme="neumorphism"] .text-purple-600, body[data-theme="neumorphism"] .text-purple-700 { color: #7e22ce !important; }
+        body[data-theme="neumorphism"] .text-green-600,  body[data-theme="neumorphism"] .text-green-700  { color: #15803d !important; }
+        body[data-theme="neumorphism"] .text-orange-600  { color: #ea580c !important; }
+        body[data-theme="neumorphism"] .text-cyan-600    { color: #0891b2 !important; }
+        body[data-theme="neumorphism"] .bg-emerald-100, body[data-theme="neumorphism"] .bg-emerald-50 { background: rgba(22,163,74,0.1) !important; }
+        body[data-theme="neumorphism"] .bg-red-100,     body[data-theme="neumorphism"] .bg-red-50      { background: rgba(220,38,38,0.1) !important; }
+        body[data-theme="neumorphism"] .bg-blue-100,    body[data-theme="neumorphism"] .bg-blue-50     { background: rgba(37,99,235,0.1) !important; }
+        body[data-theme="neumorphism"] .bg-amber-100,   body[data-theme="neumorphism"] .bg-amber-50    { background: rgba(217,119,6,0.1) !important; }
+        body[data-theme="neumorphism"] .bg-violet-100,  body[data-theme="neumorphism"] .bg-violet-50   { background: rgba(109,40,217,0.1) !important; }
+        body[data-theme="neumorphism"] .bg-purple-100,  body[data-theme="neumorphism"] .bg-purple-50   { background: rgba(126,34,206,0.1) !important; }
+        body[data-theme="neumorphism"] .bg-green-50,    body[data-theme="neumorphism"] .bg-green-100   { background: rgba(22,163,74,0.08) !important; }
+        /* Inputs */
+        body[data-theme="neumorphism"] .input-field { background: #e4e8ed !important; border: none !important; color: #111827 !important; box-shadow: var(--neu-inset) !important; }
+        body[data-theme="neumorphism"] .input-field::placeholder { color: #9ca3af !important; }
+        body[data-theme="neumorphism"] .input-field:focus { box-shadow: var(--neu-inset), 0 0 0 2px rgba(37,99,235,0.25) !important; }
+        body[data-theme="neumorphism"] .input-field option { background: #e4e8ed !important; color: #111827 !important; }
+        body[data-theme="neumorphism"] .input-label { color: #6b7280 !important; }
+        /* Chips */
+        body[data-theme="neumorphism"] .chip { background: #e4e8ed !important; border: none !important; color: #374151 !important; box-shadow: var(--neu-shadow-xs) !important; }
+        body[data-theme="neumorphism"] .chip.active { background: #1f2937 !important; color: white !important; box-shadow: inset 2px 2px 4px rgba(0,0,0,0.25) !important; }
+        /* Modals */
+        body[data-theme="neumorphism"] .modal-overlay { background: rgba(0,0,0,0.3) !important; }
+        body[data-theme="neumorphism"] .modal-glass { background: #e4e8ed !important; border: none !important; box-shadow: 12px 12px 28px #c0c6cd, -12px -12px 28px #f8fafb !important; }
+        body[data-theme="neumorphism"] .modal-glass h2, body[data-theme="neumorphism"] .modal-glass h3,
+        body[data-theme="neumorphism"] .modal-glass label, body[data-theme="neumorphism"] .modal-glass span,
+        body[data-theme="neumorphism"] .modal-glass p { color: #111827 !important; }
+        body[data-theme="neumorphism"] .modal-glass .input-field { box-shadow: var(--neu-inset) !important; }
+        /* Buttons */
+        body[data-theme="neumorphism"] main button.bg-slate-900, body[data-theme="neumorphism"] main button.bg-slate-800 { background: #1f2937 !important; color: white !important; border: none !important; box-shadow: 3px 3px 7px #c0c6cd, -1px -1px 4px #f0f3f6 !important; }
+        body[data-theme="neumorphism"] main button.bg-blue-600  { background: #2563eb !important; color: white !important; }
+        body[data-theme="neumorphism"] main button.bg-emerald-600, body[data-theme="neumorphism"] main button.bg-green-600 { background: #16a34a !important; color: white !important; }
+        body[data-theme="neumorphism"] main button.bg-red-500, body[data-theme="neumorphism"] main button.bg-red-600 { background: #dc2626 !important; color: white !important; }
+        body[data-theme="neumorphism"] main button.bg-violet-600 { background: #7c3aed !important; color: white !important; }
+        body[data-theme="neumorphism"] .pay-btn-unselected { background: #e4e8ed !important; border: none !important; color: #374151 !important; box-shadow: var(--neu-shadow-sm) !important; }
+        /* Month accordion */
+        body[data-theme="neumorphism"] .month-accordion { background: #e4e8ed !important; border: none !important; box-shadow: var(--neu-shadow) !important; margin-bottom: 10px; }
+        body[data-theme="neumorphism"] .month-accordion > button { background: transparent !important; box-shadow: none !important; border: none !important; }
+        /* Stat cards */
+        body[data-theme="neumorphism"] main .stat-card { box-shadow: var(--neu-shadow) !important; border: none !important; }
+        /* Notifications */
+        body[data-theme="neumorphism"] .notification-glass { background: #1f2937 !important; border: none !important; color: white !important; box-shadow: 6px 6px 14px #c0c6cd, -2px -2px 8px #f0f3f6 !important; }
+        body[data-theme="neumorphism"] .sidebar-license { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.06) !important; }
+        /* No double shadows */
+        body[data-theme="neumorphism"] main button.rounded-2xl, body[data-theme="neumorphism"] main span.rounded-2xl,
+        body[data-theme="neumorphism"] main .badge, body[data-theme="neumorphism"] main td.rounded-2xl { box-shadow: none !important; }
+        body[data-theme="neumorphism"] main .rounded-2xl { box-shadow: var(--neu-shadow) !important; }
+        body[data-theme="neumorphism"] main .rounded-3xl { box-shadow: var(--neu-shadow) !important; }
+        /* Cloud status */
+        body[data-theme="neumorphism"] .cloud-status { box-shadow: var(--neu-shadow-xs) !important; }
+        body[data-theme="neumorphism"] .cloud-status.connected    { background: rgba(22,163,74,0.12) !important; border: 1px solid rgba(22,163,74,0.2) !important; color: #15803d !important; }
+        body[data-theme="neumorphism"] .cloud-status.disconnected { background: rgba(220,38,38,0.1) !important; border: 1px solid rgba(220,38,38,0.2) !important; color: #dc2626 !important; }
+        body[data-theme="neumorphism"] .cloud-status.syncing      { background: rgba(217,119,6,0.1) !important;  border: 1px solid rgba(217,119,6,0.2) !important;  color: #b45309 !important; }
         * { box-sizing: border-box; }
 
         body {
@@ -2907,20 +2810,40 @@
                 }
             }, [currentBranch?.id]);
 
-            // ✅ النسخ الاحتياطي التلقائي: يحفظ في localStorage (لا يحمّل ملف تلقائياً)
+            // ✅ النسخ الاحتياطي الذكي: سحابة إن أمكن، وإلا localStorage
             useEffect(() => {
-                const autoBackup = () => {
+                const autoBackup = async () => {
+                    const snap = { inventory, customers, transactions, expenses, settings, purchaseInvoices, timestamp: new Date().toISOString() };
+                    const bid = currentBranch?.id;
+                    // محاولة الرفع للسحابة أولاً
+                    if (window.firebaseDB && bid && cloudStatus === 'connected') {
+                        try {
+                            await Promise.all([
+                                CloudManager.saveCollection(bid,'inventory',inventory),
+                                CloudManager.saveCollection(bid,'customers',customers),
+                                CloudManager.saveCollection(bid,'transactions',transactions),
+                                CloudManager.saveCollection(bid,'expenses',expenses),
+                                CloudManager.saveCollection(bid,'purchaseInvoices',purchaseInvoices),
+                            ]);
+                            localStorage.setItem('barq_auto_backup', JSON.stringify(snap));
+                            localStorage.setItem('barq_auto_backup_time', new Date().toLocaleString('ar-SA'));
+                            localStorage.setItem('barq_auto_backup_type', 'cloud');
+                            notify("☁️ نسخ احتياطي تلقائي رُفع للسحابة", "info");
+                            return;
+                        } catch(e) { console.warn('Cloud backup failed, falling back to local:', e); }
+                    }
+                    // fallback: حفظ محلي
                     try {
-                        const snap = JSON.stringify({ inventory, customers, transactions, expenses, settings, purchaseInvoices, timestamp: new Date().toISOString() });
-                        localStorage.setItem('barq_auto_backup', snap);
+                        localStorage.setItem('barq_auto_backup', JSON.stringify(snap));
                         localStorage.setItem('barq_auto_backup_time', new Date().toLocaleString('ar-SA'));
-                        notify("💾 نسخ احتياطي تلقائي محفوظ", "info");
-                    } catch(e) { console.warn('Auto backup failed:', e); }
+                        localStorage.setItem('barq_auto_backup_type', 'local');
+                        notify("💾 نسخ احتياطي محلي (سيُرفع للسحابة عند الاتصال)", "info");
+                    } catch(e) { console.warn('Local backup failed:', e); }
                 };
                 const ms = backupInterval * 60 * 1000;
                 const id = setInterval(autoBackup, ms);
                 return () => clearInterval(id);
-            }, [inventory, transactions, expenses, customers, purchaseInvoices, backupInterval]);
+            }, [inventory, transactions, expenses, customers, purchaseInvoices, backupInterval, cloudStatus, currentBranch]);
 
             // ==================== دوال المساعدة ====================
             const notify = (msg, type="success") => { 
@@ -3248,7 +3171,7 @@
                 const dStr   = now.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
                 const tStr   = now.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'});
                 return (
-                    <div className="space-y-6">
+                   <div className="space-y-6">
 
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div>
@@ -3428,104 +3351,183 @@
                             </div>
                         </div>
 
-                        {/* ==================== رسم بياني: مبيعات آخر 7 أيام ==================== */}
-                        {(() => {
-                            const days7 = Array.from({length:7}, (_,i) => {
-                                const d = new Date(); d.setDate(d.getDate() - (6-i));
-                                const label = d.toLocaleDateString('ar-SA',{weekday:'short'});
-                                const dStr = d.toDateString();
-                                const daySales = transactions.filter(t => t.type==='sale' && t.status!=='returned' && new Date(t.timestamp).toDateString()===dStr);
-                                const total = daySales.reduce((a,b)=>a+(+b.totalPrice||0),0);
-                                const profit = daySales.reduce((a,b)=>a+((+b.sellPrice||0)-(+b.buyPrice||0))*(+b.qty||0),0);
-                                return { label, total, profit, count: daySales.length };
-                            });
-                            const maxVal = Math.max(...days7.map(d=>d.total), 1);
-                            const totalWeek = days7.reduce((a,b)=>a+b.total,0);
-                            const profitWeek = days7.reduce((a,b)=>a+b.profit,0);
-                            return (
-                                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                                    <div className="flex justify-between items-center mb-5 flex-wrap gap-2">
-                                        <h3 className="font-black text-slate-700 text-lg flex items-center gap-2">
-                                            <i className="ph-fill ph-chart-bar text-violet-600 text-xl"></i>
-                                            مبيعات آخر 7 أيام
-                                        </h3>
-                                        <div className="flex gap-3 text-sm">
-                                            <div className="bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-xl">
-                                                <span className="text-blue-500 font-bold text-xs">إجمالي الأسبوع: </span>
-                                                <span className="text-blue-700 font-black">{totalWeek.toLocaleString()} ر</span>
-                                            </div>
-                                            <div className="bg-violet-50 border border-violet-100 px-3 py-1.5 rounded-xl">
-                                                <span className="text-violet-500 font-bold text-xs">ربح الأسبوع: </span>
-                                                <span className="text-violet-700 font-black">{profitWeek.toLocaleString()} ر</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-end gap-2 h-44 mt-2">
-                                        {days7.map((d,i) => {
-                                            const pct = maxVal > 0 ? (d.total / maxVal) * 100 : 0;
-                                            const isToday = i === 6;
-                                            return (
-                                                <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-                                                    <div className="absolute bottom-[36px] left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-xs rounded-lg px-2 py-1 pointer-events-none z-10 whitespace-nowrap">
-                                                        <div className="font-black">{d.total.toLocaleString()} ر</div>
-                                                        <div className="text-slate-300">{d.count} فاتورة</div>
-                                                    </div>
-                                                    <div className="w-full rounded-t-lg transition-all duration-500"
-                                                        style={{
-                                                            height: `${Math.max(pct, d.total > 0 ? 4 : 0)}%`,
-                                                            background: isToday
-                                                                ? 'linear-gradient(180deg, #6366f1, #8b5cf6)'
-                                                                : d.total > 0
-                                                                ? 'linear-gradient(180deg, #3b82f6, #06b6d4)'
-                                                                : '#f1f5f9',
-                                                            boxShadow: isToday ? '0 4px 12px rgba(99,102,241,0.4)' : 'none',
-                                                            minHeight: '4px'
-                                                        }}
-                                                    ></div>
-                                                    <span className={`text-[10px] font-black mt-1 ${isToday ? 'text-violet-600' : 'text-slate-400'}`}>{d.label}</span>
-                                                    {d.count > 0 && <span className="text-[9px] text-slate-400">{d.count}</span>}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    <div className="flex gap-3 mt-3 text-[11px] text-slate-400 font-bold">
-                                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gradient-to-b from-blue-500 to-cyan-500 inline-block"></span>أيام سابقة</span>
-                                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gradient-to-b from-indigo-500 to-violet-500 inline-block"></span>اليوم</span>
-                                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-slate-100 inline-block border"></span>لا مبيعات</span>
-                                    </div>
-                                </div>
-                            );
-                        })()}
+                       {/* ==================== حاوية الإحصائيات وجدول النواقص ==================== */}
+<div className="space-y-6">
+    
+ {/* ==================== جدول النواقص الواضح جداً ==================== */}
+{(() => {
+    const [selectedBrands, setSelectedBrands] = React.useState([]);
+    const [showMenu, setShowMenu] = React.useState(false);
+
+    const allItems = (typeof inventory !== 'undefined' && Array.isArray(inventory)) ? inventory : [];
+    const allSales = (typeof transactions !== 'undefined' && Array.isArray(transactions)) ? transactions : [];
+
+    // استخراج الشركات
+    const brandsList = [...new Set(allItems.map(i => i.company).filter(Boolean))];
+    
+    // حساب المبيعات
+    const salesCount = {};
+    allSales.forEach(tr => {
+        if (tr.type === 'sale' && Array.isArray(tr.items)) {
+            tr.items.forEach(si => {
+                salesCount[si.name] = (salesCount[si.name] || 0) + (Number(si.qty) || 0);
+            });
+        }
+    });
+
+    const finalData = allItems
+        .map(item => ({
+            ...item,
+            stk: Number(item.stock) || 0,
+            sales: salesCount[item.name] || 0,
+        }))
+        .filter(item => {
+            const isDeficit = item.stk <= 2;
+            const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(item.company);
+            return isDeficit && matchesBrand;
+        })
+        // الترتيب: الصفر فوق الكل، ثم الأكثر مبيعاً
+        .sort((a, b) => {
+            if (a.stk === 0 && b.stk !== 0) return -1;
+            if (a.stk !== 0 && b.stk === 0) return 1;
+            return b.sales - a.sales;
+        });
+
+    return (
+        <div className="bg-white rounded-2xl shadow-lg border border-blue-100 overflow-hidden mb-8">
+            
+            {/* رأس الجدول - أبيض ناصع مع أزرق */}
+            <div className="p-5 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md">
+                        <i className="ph-fill ph-list-magnifying-glass text-xl"></i>
+                    </div>
+                    <h3 className="font-black text-blue-900 text-lg">نواقص الشركات المطلوبة</h3>
+                </div>
+
+                {/* قائمة اختيار الشركات - واضحة جداً */}
+                <div className="relative w-full md:w-64">
+                    <button 
+                        onClick={() => setShowMenu(!showMenu)}
+                        className="w-full bg-blue-50 border-2 border-blue-200 p-3 rounded-xl flex justify-between items-center text-blue-800 font-black text-sm"
+                    >
+                        <span>{selectedBrands.length === 0 ? "اختر الشركات (الكل)" : `مختار: ${selectedBrands.length}`}</span>
+                        <i className="ph-bold ph-caret-down"></i>
+                    </button>
+
+                    {showMenu && (
+                        <div className="absolute top-full mt-2 w-full bg-white border-2 border-blue-100 shadow-2xl rounded-2xl z-[999] p-2">
+                            <div className="max-h-60 overflow-y-auto">
+                                <button 
+                                    onClick={() => {setSelectedBrands([]); setShowMenu(false);}}
+                                    className="w-full text-right p-3 hover:bg-blue-50 rounded-xl text-blue-600 font-black text-xs border-b border-blue-50 mb-1"
+                                >
+                                    إظهار الكل
+                                </button>
+                                {brandsList.map(brand => (
+                                    <label key={brand} className="flex items-center gap-3 p-3 hover:bg-blue-50 rounded-xl cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={selectedBrands.includes(brand)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) setSelectedBrands([...selectedBrands, brand]);
+                                                else setSelectedBrands(selectedBrands.filter(b => b !== brand));
+                                            }}
+                                            className="w-5 h-5 rounded border-blue-300 text-blue-600"
+                                        />
+                                        <span className="font-black text-slate-700 text-xs">{brand}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* الجدول - أبيض ناصع مع تمييز الصفر بالأحمر */}
+            <div className="overflow-x-auto">
+                <table className="w-full text-right">
+                    <thead>
+                        <tr className="bg-blue-600 text-white font-black text-xs">
+                            <th className="p-4">اسم الصنف</th>
+                            <th className="p-4 text-center">الشركة</th>
+                            <th className="p-4 text-center">المبيعات</th>
+                            <th className="p-4 text-center">المخزن</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {finalData.map((item, i) => (
+                            <tr key={i} className={`border-b border-blue-50 ${item.stk === 0 ? 'bg-red-50' : 'bg-white'}`}>
+                                <td className="p-4 font-black text-slate-800 text-sm">{item.name}</td>
+                                <td className="p-4 text-center">
+                                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black text-[10px]">
+                                        {item.company}
+                                    </span>
+                                </td>
+                                <td className="p-4 text-center font-bold text-slate-600">{item.sales} قطعة</td>
+                                <td className="p-4 text-center">
+                                    <span className={`inline-block w-10 py-1 rounded-lg font-black text-sm ${item.stk === 0 ? 'bg-red-600 text-white shadow-md' : 'bg-orange-400 text-white'}`}>
+                                        {item.stk}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+})()}
+</div>
 
                     </div>
                 );
             };
 
-            // ==================== الأرباح والخسائر ====================
+            // ==================== الأرباح والخسائر - محسّن ====================
             const ProfitLossView = () => {
                 const [period, setPeriod] = useState('month');
                 const [yr, setYr] = useState(new Date().getFullYear());
                 const [mo, setMo] = useState(new Date().getMonth());
+                const [manualCog, setManualCog] = useState(null);   // تكلفة يدوية أو null للتلقائي
+                const [cogMode, setCogMode] = useState('auto');      // 'auto' | 'manual'
+                const [excludedExpenses, setExcludedExpenses] = useState(() => {
+                    try { return JSON.parse(localStorage.getItem('barq_excluded_exp') || '[]'); } catch { return []; }
+                });
                 const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+                useEffect(() => { localStorage.setItem('barq_excluded_exp', JSON.stringify(excludedExpenses)); }, [excludedExpenses]);
+
                 const s = period==='month' ? new Date(yr,mo,1).getTime() : new Date(yr,0,1).getTime();
                 const e = period==='month' ? new Date(yr,mo+1,0,23,59,59).getTime() : new Date(yr,11,31,23,59,59).getTime();
-                const pT = transactions.filter(t=>t.timestamp>=s&&t.timestamp<=e);
+                const pT    = transactions.filter(t=>t.timestamp>=s&&t.timestamp<=e);
                 const sales = pT.filter(t=>t.type==='sale'&&t.status!=='returned');
-                const pExp = expenses.filter(x=>(x.timestamp||0)>=s&&(x.timestamp||0)<=e);
+                const pExp  = expenses.filter(x=>(x.timestamp||0)>=s&&(x.timestamp||0)<=e);
+
                 const grossSales = sales.reduce((a,b)=>a+(+b.totalPrice||0),0);
-                const scrapInc = sales.reduce((a,b)=>a+(+b.scrapValue||0),0);
-                // المرتجعات لا تؤثر على صافي المبيعات في الأرباح والخسائر
-                const netSales = grossSales;
-                const cog = sales.reduce((a,b)=>a+(+b.buyPrice||0)*(+b.qty||0),0);
-                const grossP = netSales - cog + scrapInc;
-                const expT = pExp.reduce((a,b)=>a+(+b.amount||0),0);
-                const netP = grossP - expT;
-                const margin = netSales>0?((netP/netSales)*100).toFixed(1):0;
-                const expCats = Object.entries(
+                const scrapInc   = sales.reduce((a,b)=>a+(+b.scrapValue||0),0);
+                const netSales   = grossSales;
+                const autoCog    = sales.reduce((a,b)=>a+(+b.buyPrice||0)*(+b.qty||0),0);
+                const cog        = cogMode === 'manual' && manualCog !== null ? Number(manualCog) : autoCog;
+                const grossP     = netSales - cog + scrapInc;
+
+                // المصروفات مع إمكانية الاستثناء
+                const allExpCats = Object.entries(
                     pExp.reduce((a,b)=>{const k=b.title||'أخرى';a[k]=(a[k]||0)+(+b.amount||0);return a;},{})
-                ).sort((a,b)=>b[1]-a[1]).slice(0,6);
+                ).sort((a,b)=>b[1]-a[1]);
+                const inclExpCats = allExpCats.filter(([k])=>!excludedExpenses.includes(k));
+                const exclExpCats = allExpCats.filter(([k])=>excludedExpenses.includes(k));
+                const expT   = inclExpCats.reduce((a,[,v])=>a+v,0);
+                const exclT  = exclExpCats.reduce((a,[,v])=>a+v,0);
+                const netP   = grossP - expT;
+                const margin = netSales>0?((netP/netSales)*100).toFixed(1):0;
+
+                const toggleExclude = (title) => {
+                    setExcludedExpenses(prev => prev.includes(title) ? prev.filter(x=>x!==title) : [...prev, title]);
+                };
+
                 return (
-                    <div className="space-y-6">
+                    <div className="space-y-5">
                         <div className="flex flex-col md:flex-row justify-between gap-4">
                             <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
                                 <i className="ph-fill ph-chart-line-up text-blue-600"></i> الأرباح والخسائر
@@ -3533,7 +3535,7 @@
                             <div className="flex gap-2 flex-wrap">
                                 <div className="flex bg-white rounded-xl border overflow-hidden shadow-sm">
                                     <button onClick={()=>setPeriod('month')} className={"px-4 py-2 text-sm font-bold "+(period==='month'?'bg-blue-600 text-white':'text-slate-500')}>شهري</button>
-                                    <button onClick={()=>setPeriod('year')} className={"px-4 py-2 text-sm font-bold "+(period==='year'?'bg-blue-600 text-white':'text-slate-500')}>سنوي</button>
+                                    <button onClick={()=>setPeriod('year')}  className={"px-4 py-2 text-sm font-bold "+(period==='year' ?'bg-blue-600 text-white':'text-slate-500')}>سنوي</button>
                                 </div>
                                 {period==='month' && (
                                     <select value={mo} onChange={x=>setMo(Number(x.target.value))} className="bg-white border rounded-xl px-3 py-2 text-sm font-bold shadow-sm">
@@ -3545,8 +3547,15 @@
                                 </select>
                             </div>
                         </div>
+
+                        {/* بطاقات الملخص */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[{l:'صافي الربح',v:netP,s:'هامش '+margin+'%',bg:'bg-emerald-600'},{l:'إجمالي المبيعات',v:grossSales,s:sales.length+' فاتورة',bg:'bg-blue-600'},{l:'المصروفات',v:expT,s:pExp.length+' مصروف',bg:'bg-red-500'},{l:'الربح الإجمالي',v:grossP,s:'قبل المصروفات',bg:'bg-slate-800'}].map(s=>(
+                            {[
+                                {l:'صافي الربح',v:netP,s:'هامش '+margin+'%',bg:netP>=0?'bg-emerald-600':'bg-red-600'},
+                                {l:'إجمالي المبيعات',v:grossSales,s:sales.length+' فاتورة',bg:'bg-blue-600'},
+                                {l:'المصروفات المحتسبة',v:expT,s:exclT>0?`مستثنى: ${exclT.toLocaleString()} ر`:`${pExp.length} مصروف`,bg:'bg-red-500'},
+                                {l:'الربح الإجمالي',v:grossP,s:'قبل المصروفات',bg:'bg-slate-800'}
+                            ].map(s=>(
                                 <div key={s.l} className={s.bg+" text-white p-5 rounded-2xl"}>
                                     <p className="text-white/70 text-xs mb-1">{s.l}</p>
                                     <p className="text-3xl font-black">{Number(s.v).toLocaleString()}</p>
@@ -3554,28 +3563,66 @@
                                 </div>
                             ))}
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white rounded-2xl border shadow-sm p-6">
-                                <h3 className="font-black text-slate-700 mb-4 pb-2 border-b text-lg">قائمة الدخل</h3>
-                                {[{l:'إجمالي المبيعات',v:grossSales},{l:'صافي المبيعات',v:netSales,bold:true},{l:'(+) دخل الرجيع',v:scrapInc,c:'text-orange-600'},{l:'(−) تكلفة المبيعات',v:-cog,c:'text-red-600'}].map(r=>(
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                            {/* قائمة الدخل */}
+                            <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-1">
+                                <h3 className="font-black text-slate-700 mb-3 pb-2 border-b text-base flex items-center gap-2">
+                                    <i className="ph-fill ph-receipt text-blue-500"></i> قائمة الدخل
+                                </h3>
+                                {[
+                                    {l:'إجمالي المبيعات',v:grossSales},
+                                    {l:'صافي المبيعات',v:netSales,bold:true},
+                                    {l:'(+) دخل الرجيع',v:scrapInc,c:'text-orange-600'},
+                                ].map(r=>(
                                     <div key={r.l} className="flex justify-between py-2 border-b border-slate-100">
-                                        <span className={"font-bold "+(r.bold?'font-black text-slate-800':'text-slate-600')}>{r.l}</span>
-                                        <span className={"font-black "+(r.c||'text-slate-700')}>{Number(r.v).toLocaleString()} ر</span>
+                                        <span className={"text-sm font-bold "+(r.bold?'font-black text-slate-800':'text-slate-600')}>{r.l}</span>
+                                        <span className={"font-black text-sm "+(r.c||'text-slate-700')}>{Number(r.v).toLocaleString()} ر</span>
                                     </div>
                                 ))}
+
+                                {/* تكلفة المبيعات - قابلة للتعديل */}
+                                <div className="py-2 border-b border-slate-100">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-sm font-bold text-slate-600">(−) تكلفة المبيعات</span>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={()=>{ setCogMode(cogMode==='auto'?'manual':'auto'); if(cogMode==='auto') setManualCog(autoCog); }}
+                                                className={`text-[10px] font-black px-2 py-0.5 rounded-full border transition-all ${cogMode==='manual'?'bg-blue-100 text-blue-700 border-blue-300':'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                                                {cogMode==='manual'?'✏️ يدوي':'تلقائي'}
+                                            </button>
+                                            <span className="font-black text-sm text-red-600">{cog.toLocaleString()} ر</span>
+                                        </div>
+                                    </div>
+                                    {cogMode==='manual' && (
+                                        <div className="mt-1.5 flex gap-2 items-center">
+                                            <input type="number" className="input-field text-center text-sm py-1.5 flex-1" value={manualCog??autoCog}
+                                                onChange={e=>setManualCog(Number(e.target.value))} placeholder={autoCog} />
+                                            <button onClick={()=>{setCogMode('auto');setManualCog(null);}} className="text-xs font-bold text-slate-500 hover:text-red-500 whitespace-nowrap">↩ تلقائي</button>
+                                        </div>
+                                    )}
+                                    {cogMode==='auto' && <p className="text-[10px] text-slate-400 mt-0.5">محسوب تلقائياً من سعر الشراء × الكمية</p>}
+                                </div>
+
                                 <div className="flex justify-between py-3 bg-emerald-50 rounded-xl px-3 my-2">
                                     <span className="font-black text-emerald-700">الربح الإجمالي</span>
                                     <span className="font-black text-xl text-emerald-700">{grossP.toLocaleString()} ر</span>
                                 </div>
-                                <p className="text-xs font-black text-slate-400 uppercase my-2">المصروفات</p>
-                                {expCats.map(([k,v])=>(
-                                    <div key={k} className="flex justify-between py-1.5 border-b border-slate-100 mr-4">
+
+                                <p className="text-xs font-black text-slate-400 uppercase mt-3 mb-1">المصروفات المحتسبة</p>
+                                {inclExpCats.map(([k,v])=>(
+                                    <div key={k} className="flex justify-between py-1.5 border-b border-slate-100 pr-3">
                                         <span className="text-sm font-bold text-slate-500">{k}</span>
-                                        <span className="font-black text-red-500">{(-v).toLocaleString()} ر</span>
+                                        <span className="font-black text-red-500 text-sm">{(-v).toLocaleString()} ر</span>
                                     </div>
                                 ))}
+                                {exclExpCats.length > 0 && (
+                                    <div className="flex justify-between py-1.5 border-b border-slate-100 pr-3">
+                                        <span className="text-xs font-bold text-slate-400 flex items-center gap-1"><i className="ph ph-eye-slash"></i> مصروفات مستثناة ({exclExpCats.length})</span>
+                                        <span className="font-bold text-xs text-slate-400">{exclT.toLocaleString()} ر</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between py-2 border-b border-slate-100">
-                                    <span className="font-black text-slate-700">إجمالي المصروفات</span>
+                                    <span className="font-black text-slate-700 text-sm">إجمالي المصروفات المحتسبة</span>
                                     <span className="font-black text-red-600">{(-expT).toLocaleString()} ر</span>
                                 </div>
                                 <div className={"flex justify-between py-3 "+(netP>=0?'bg-blue-50':'bg-red-50')+" rounded-xl px-3 mt-2"}>
@@ -3583,14 +3630,59 @@
                                     <span className={"font-black text-xl "+(netP>=0?'text-blue-700':'text-red-700')}>{netP.toLocaleString()} ر</span>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-2xl border shadow-sm p-6">
-                                <h3 className="font-black text-slate-700 mb-4 pb-2 border-b">إحصائيات الفترة</h3>
-                                {[{l:'عدد الفواتير',v:sales.length},{l:'متوسط الفاتورة',v:sales.length?Math.round(grossSales/sales.length):0},{l:'إجمالي القطع',v:sales.reduce((a,b)=>a+(+b.qty||0),0)},{l:'هامش الربح',v:margin+'%'}].map(r=>(
-                                    <div key={r.l} className="flex justify-between py-3 border-b border-slate-100">
-                                        <span className="text-sm font-bold text-slate-600">{r.l}</span>
-                                        <span className="font-black text-slate-800">{typeof r.v==='number'?r.v.toLocaleString():r.v}</span>
+
+                            <div className="space-y-4">
+                                {/* إحصائيات الفترة */}
+                                <div className="bg-white rounded-2xl border shadow-sm p-5">
+                                    <h3 className="font-black text-slate-700 mb-3 pb-2 border-b text-sm flex items-center gap-2">
+                                        <i className="ph-fill ph-chart-bar text-violet-500"></i> إحصائيات الفترة
+                                    </h3>
+                                    {[
+                                        {l:'عدد الفواتير',v:sales.length},
+                                        {l:'متوسط الفاتورة',v:sales.length?Math.round(grossSales/sales.length):0},
+                                        {l:'إجمالي القطع',v:sales.reduce((a,b)=>a+(+b.qty||0),0)},
+                                        {l:'التكلفة ('+(cogMode==='manual'?'يدوي':'تلقائي')+')',v:cog},
+                                        {l:'هامش الربح',v:margin+'%'},
+                                    ].map(r=>(
+                                        <div key={r.l} className="flex justify-between py-2.5 border-b border-slate-100">
+                                            <span className="text-sm font-bold text-slate-600">{r.l}</span>
+                                            <span className="font-black text-slate-800">{typeof r.v==='number'?r.v.toLocaleString():r.v}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* إدارة استثناء المصروفات */}
+                                {allExpCats.length > 0 && (
+                                    <div className="bg-white rounded-2xl border shadow-sm p-5">
+                                        <h3 className="font-black text-slate-700 mb-3 pb-2 border-b text-sm flex items-center gap-2">
+                                            <i className="ph-fill ph-funnel text-amber-500"></i> تحديد المصروفات المحتسبة
+                                            <span className="text-[10px] font-normal text-slate-400 mr-auto">✅ محتسبة / ⬜ مستثناة</span>
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {allExpCats.map(([k,v])=>{
+                                                const isExcl = excludedExpenses.includes(k);
+                                                return (
+                                                    <div key={k} onClick={()=>toggleExclude(k)}
+                                                        className="flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all select-none hover:scale-[1.01]"
+                                                        style={{background: isExcl?'rgba(0,0,0,0.04)':'rgba(239,68,68,0.06)', border:`1px solid ${isExcl?'rgba(0,0,0,0.08)':'rgba(239,68,68,0.2)'}`}}>
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className={`w-5 h-5 rounded-md flex items-center justify-center text-xs flex-shrink-0 ${isExcl?'bg-slate-200 text-slate-400':'bg-red-100 text-red-600'}`}>
+                                                                {isExcl ? '—' : '✓'}
+                                                            </div>
+                                                            <span className={`text-sm font-bold ${isExcl?'text-slate-400 line-through':'text-slate-700'}`}>{k}</span>
+                                                        </div>
+                                                        <span className={`font-black text-sm ${isExcl?'text-slate-300':'text-red-500'}`}>{v.toLocaleString()} ر</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        {excludedExpenses.length > 0 && (
+                                            <button onClick={()=>setExcludedExpenses([])} className="w-full mt-3 py-1.5 text-xs font-bold rounded-xl text-slate-500 border border-slate-200 hover:bg-slate-50">
+                                                إعادة تضمين الكل
+                                            </button>
+                                        )}
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     </div>
@@ -3652,8 +3744,8 @@
                     setForm(f => ({...f, guestPhone: formatted}));
                 };
 
-                const submit = (e) => {
-                    e.preventDefault();
+                const submit = (e, mode = 'print') => {
+                    if (e) e.preventDefault();
                     if (!item || item.stock < form.qty) return notify("الكمية غير متوفرة!", "error");
                     
                     let finalCustomerId = form.customerId;
@@ -3733,14 +3825,22 @@
                         const custItem = updatedCust.find(c => c.id == finalCustomerId);
                         if (custItem) saveItemToCloud('customers', custItem);
                     }
-                    notify("تمت العملية ☁️"); 
-                    handlePrint(newTrans);
-                    // ✅ إرسال واتساب تلقائي إذا كان رقم الجوال متوفراً
+                    notify("✅ تمت العملية ☁️");
+
+                    // أوضاع الحفظ المختلفة
                     const custPhone = form.guestPhone || (customers.find(c=>c.id==finalCustomerId)?.phone) || "";
-                    if (custPhone) {
-                        const cleaned = PhoneFormatter.format(custPhone).replace(/\D/g,'');
-                        const msg = encodeURIComponent(`🧾 فاتورة من ${settings.shopName}\n📦 ${item.name} × ${form.qty}\n💰 الإجمالي: ${total} ريال\n📅 ${new Date().toLocaleDateString('ar-SA')}\nشكراً لتعاملكم معنا ✨`);
-                        setTimeout(() => window.open(`https://wa.me/${cleaned}?text=${msg}`, '_blank'), 1200);
+                    const waMsg = encodeURIComponent(`🧾 فاتورة من ${settings.shopName}\n📦 ${item.name} × ${form.qty}\n💰 الإجمالي: ${total.toLocaleString()} ريال\n📅 ${new Date().toLocaleDateString('ar-SA')}\nشكراً لتعاملكم معنا ✨`);
+
+                    if (mode === 'print' || mode === 'save') {
+                        if (mode === 'print') handlePrint(newTrans);
+                    }
+                    if (mode === 'whatsapp') {
+                        if (custPhone) {
+                            const cleaned = PhoneFormatter.format(custPhone).replace(/\D/g,'');
+                            setTimeout(() => window.open(`https://wa.me/${cleaned}?text=${waMsg}`, '_blank'), 400);
+                        } else {
+                            notify("⚠️ لا يوجد رقم جوال للعميل", "error");
+                        }
                     }
                     setForm({ 
                         customerId: "", 
@@ -3766,7 +3866,7 @@
                                 <i className="ph-fill ph-shopping-cart text-blue-500"></i> 
                                 نقطة البيع
                             </h2>
-                            <form onSubmit={submit} className="space-y-6">
+                            <form onSubmit={(e)=>submit(e,'print')} className="space-y-6">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="col-span-2">
                                         <label className="input-label">العميل (مختار من القائمة)</label>
@@ -4015,10 +4115,26 @@
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex gap-2">
-                                    <button className="flex-1 bg-slate-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-slate-800 shadow-xl flex items-center justify-center gap-2">
-                                        <i className="ph ph-printer"></i> 
-                                        إتمام وطباعة
+                                <div className="grid grid-cols-3 gap-2 mt-2">
+                                    {/* زر الحفظ فقط */}
+                                    <button type="button" onClick={() => submit(null, 'save')}
+                                        className="py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-95"
+                                        style={{background:'rgba(52,211,153,0.2)',border:'2px solid rgba(52,211,153,0.5)',color:'rgb(110,231,183)'}}>
+                                        <i className="ph-fill ph-floppy-disk text-xl"></i>
+                                        <span>حفظ</span>
+                                    </button>
+                                    {/* زر الحفظ والطباعة */}
+                                    <button type="button" onClick={() => submit(null, 'print')}
+                                        className="py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-95 bg-slate-900 text-white shadow-xl">
+                                        <i className="ph-fill ph-printer text-xl"></i>
+                                        <span>حفظ وطباعة</span>
+                                    </button>
+                                    {/* زر الحفظ وإرسال واتساب */}
+                                    <button type="button" onClick={() => submit(null, 'whatsapp')}
+                                        className="py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-95"
+                                        style={{background:'rgba(37,211,102,0.2)',border:'2px solid rgba(37,211,102,0.5)',color:'rgb(37,211,102)'}}>
+                                        <i className="ph-fill ph-whatsapp-logo text-xl"></i>
+                                        <span>واتساب</span>
                                     </button>
                                 </div>
                             </form>
@@ -4365,10 +4481,10 @@
 
             // السجل والتقارير
             const TransactionsView = () => {
-                const [timeFilter, setTimeFilter] = useState('all');
+                const [timeFilter, setTimeFilter] = useState('day');
                 const [dateFrom, setDateFrom] = useState("");
                 const [dateTo, setDateTo] = useState("");
-                const [typeFilter, setTypeFilter] = useState('all');
+                const [typeFilter, setTypeFilter] = useState('sale');
                 const [search, setSearch] = useState("");
                 
                 const handleReturn = (trans) => {
@@ -4384,33 +4500,34 @@
                         if(retCust) saveItemToCloud('customers', retCust);
                     };
                     setTransactions(transactions.map(t => t.id === trans.id ? { ...t, status: 'returned' } : t));
-                    saveItemToCloud('transactions', { ...trans, status: 'returned' }); // ☁️ حفظ فوري
+                    saveItemToCloud('transactions', { ...trans, status: 'returned' });
                     notify("تم الاسترجاع");
                 };
 
                 const getFiltered = () => {
                     let res = transactions;
-                    
                     if (dateFrom && dateTo) {
                         const start = new Date(dateFrom).setHours(0,0,0,0);
-                        const end = new Date(dateTo).setHours(23,59,59,999);
+                        const end   = new Date(dateTo).setHours(23,59,59,999);
                         res = res.filter(t => t.timestamp >= start && t.timestamp <= end);
                     } else if (timeFilter !== 'all') {
-                        const now = Date.now();
+                        const now   = Date.now();
+                        const today = new Date(); today.setHours(0,0,0,0);
                         if (timeFilter === 'day') {
-                            const todayDate = new Date().toDateString();
-                            res = res.filter(t => new Date(t.timestamp).toDateString() === todayDate);
+                            res = res.filter(t => new Date(t.timestamp).toDateString() === today.toDateString());
+                        } else if (timeFilter === 'yesterday') {
+                            const yest = new Date(today); yest.setDate(yest.getDate() - 1);
+                            const yestEnd = new Date(yest); yestEnd.setHours(23,59,59,999);
+                            res = res.filter(t => t.timestamp >= yest.getTime() && t.timestamp <= yestEnd.getTime());
                         } else if (timeFilter === 'week') {
-                            const oneWeek = 7 * 24 * 60 * 60 * 1000;
-                            res = res.filter(t => (now - t.timestamp) < oneWeek);
+                            res = res.filter(t => (now - t.timestamp) < 7*24*60*60*1000);
                         } else if (timeFilter === 'month') {
-                            const oneMonth = 30 * 24 * 60 * 60 * 1000;
-                            res = res.filter(t => (now - t.timestamp) < oneMonth);
+                            res = res.filter(t => (now - t.timestamp) < 30*24*60*60*1000);
                         }
                     }
-
                     if (typeFilter !== 'all') res = res.filter(t => typeFilter === 'returned' ? t.status === 'returned' : (t.type === typeFilter && t.status !== 'returned'));
-                    return res.filter(t => t.date.includes(search) || t.customerName?.includes(search) || t.itemName?.includes(search));
+                    if (search) res = res.filter(t => (t.date||'').includes(search) || (t.customerName||'').includes(search) || (t.itemName||'').includes(search));
+                    return res;
                 };
                 
                 const filtered = getFiltered();
@@ -4505,11 +4622,12 @@
                                     <p className="text-[11px] text-amber-600 font-bold mb-1">الإجمالي الصافي</p>
                                     <p className="text-xl font-black text-amber-700">{grossTotal.toLocaleString()}</p>
                                 </div>
-                                <div className="bg-red-50 p-4 rounded-2xl border border-red-200 shadow-sm hover:shadow-md transition-shadow">
-                                    <p className="text-[11px] text-red-500 font-bold mb-1">مجموع الرجيع</p>
-                                    <p className="text-xl font-black text-red-600">{totalReturned.toLocaleString()}</p>
-                                    <p className="text-[10px] text-red-400 font-bold mt-0.5">({returnedCount} عملية)</p>
-                                </div>
+                               <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+    <p className="text-[11px] text-blue-600 font-bold mb-1">قيمة الرجيع (قطع مستعملة)</p>
+    <p className="text-xl font-black text-blue-700">{scrapProfit.toLocaleString()}</p>
+    <p className="text-[10px] text-blue-700 font-bold mt-0.5">من المبيعات</p>
+</div>
+                               
                             </div>
 
                             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between">
@@ -4524,21 +4642,48 @@
                                     <i className="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                 </div>
                             </div>
+<div className="flex flex-col md:flex-row gap-4">
+    {/* فلتر الوقت - اليوم هو المختار افتراضياً */}
+    <div className="flex bg-white p-1.5 rounded-xl border border-slate-100 shadow-sm flex-wrap">
+        {[{v:'day',l:'اليوم'}, {v:'yesterday',l:'أمس'}, {v:'week',l:'أسبوع'}, {v:'month',l:'شهر'}, {v:'all',l:'الكل'}].map(f => (
+            <button 
+                key={f.v} 
+                onClick={() => { setTimeFilter(f.v); setDateFrom(""); setDateTo(""); }}
+                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 
+                    ${timeFilter === f.v && !dateFrom 
+                        ? 'bg-slate-900 text-white shadow-md' 
+                        : 'text-slate-500 hover:bg-slate-400/10 hover:backdrop-blur-sm' // تأثير زجاجي شفاف
+                    }`}
+            >
+                {f.l}
+            </button>
+        ))}
+    </div>
 
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <div className="flex bg-white p-1.5 rounded-xl border border-slate-100 shadow-sm">
-                                    {[{v:'all',l:'الكل'}, {v:'month',l:'شهر'}, {v:'week',l:'أسبوع'}, {v:'day',l:'يوم'}].map(f => (
-                                        <button key={f.v} onClick={() => { setTimeFilter(f.v === 'today' ? 'day' : f.v); setDateFrom(""); setDateTo(""); }} className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${timeFilter === (f.v === 'today' ? 'day' : f.v) && !dateFrom ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:bg-white/10'}`}>{f.l}</button>
-                                    ))}
-                                </div>
-                                <div className="flex bg-white p-1.5 rounded-xl border border-slate-100 shadow-sm overflow-x-auto">
-                                    {[{v:'all',l:'الكل'}, {v:'sale',l:'مبيعات'}, {v:'payment',l:'قبض'}, {v:'supply',l:'توريد'}, {v:'returned',l:'مرتجع'}].map(f => (
-                                        <button key={f.v} onClick={() => setTypeFilter(f.v)} className={`px-6 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${typeFilter === f.v ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-white/10'}`}>{f.l}</button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
+    {/* فلتر النوع - مبيعات هي المختارة افتراضياً */}
+    <div className="flex bg-white p-1.5 rounded-xl border border-slate-100 shadow-sm overflow-x-auto">
+        {[
+            {v:'sale',l:'مبيعات',c:'bg-emerald-600'},
+            {v:'payment',l:'قبض',c:'bg-violet-600'},
+            {v:'supply',l:'توريد',c:'bg-blue-600'},
+            {v:'returned',l:'مرتجع',c:'bg-red-600'},
+            {v:'all',l:'الكل',c:'bg-slate-900'}
+        ].map(f => (
+            <button 
+                key={f.v} 
+                onClick={() => setTypeFilter(f.v)}
+                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 whitespace-nowrap 
+                    ${typeFilter === f.v 
+                        ? f.c + ' text-white shadow-md' 
+                        : 'text-slate-500 hover:bg-slate-400/10 hover:backdrop-blur-sm' // تأثير زجاجي شفاف
+                    }`}
+            >
+                {f.l}
+            </button>
+        ))}
+    </div>
+</div>
+</div>
                         <div className="space-y-2">
                             {groupByMonth(filtered, t => t.timestamp).map((month, mi) => {
                                 const mSales = month.items.filter(t => t.type==='sale' && t.status!=='returned');
@@ -5236,18 +5381,24 @@
                                                             <th className="p-3">رقم الفاتورة</th>
                                                             <th className="p-3">المورد</th>
                                                             <th className="p-3 text-center">الأصناف</th>
+                                                            <th className="p-3 text-center">إجمالي الكمية</th>
                                                             <th className="p-3 text-center">التكلفة</th>
                                                             <th className="p-3 text-center">إجراء</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {month.items.map((inv, idx) => (
+                                                        {month.items.map((inv, idx) => {
+                                                            const invTotalQty = inv.items.reduce((a,it)=>a+(Number(it.qty)||0),0);
+                                                            return (
                                                             <tr key={idx} className="transition-all hover:bg-white/5" style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                                                                 <td className="p-3 text-xs font-mono" style={{color:'var(--text-muted)'}}>{inv.date?.split(',')[0] || '-'}</td>
                                                                 <td className="p-3 font-black" style={{color:'var(--text-primary)'}}>{inv.invoiceNo}</td>
                                                                 <td className="p-3 font-bold" style={{color:'var(--text-secondary)'}}>{inv.supplierName}</td>
                                                                 <td className="p-3 text-center">
                                                                     <span className="px-2 py-0.5 rounded-full text-xs font-black" style={{background:'rgba(99,165,255,0.2)',color:'rgb(147,197,253)'}}>{inv.items.length} صنف</span>
+                                                                </td>
+                                                                <td className="p-3 text-center">
+                                                                    <span className="px-2 py-0.5 rounded-full text-xs font-black" style={{background:'rgba(52,211,153,0.15)',color:'rgb(110,231,183)'}}>{invTotalQty.toLocaleString()} قطعة</span>
                                                                 </td>
                                                                 <td className="p-3 text-center font-black" style={{color:'var(--text-primary)'}}>{inv.total.toLocaleString()}</td>
                                                                 <td className="p-3 text-center">
@@ -5258,7 +5409,8 @@
                                                                     </div>
                                                                 </td>
                                                             </tr>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </tbody>
                                                 </table>
                                             </MonthAccordion>
@@ -5279,6 +5431,7 @@
 
             // ==================== المخزن - محسّن ====================
             const InventoryView = () => {
+                const [invTab, setInvTab] = useState('main'); // main | reconcile | opening
                 const [newItem, setNewItem] = useState({ name: "", company: "", buyPrice: 0, sellPrice: 0, stock: 0 });
                 const [invSearch, setInvSearch] = useState("");
                 const [selectedCompany, setSelectedCompany] = useState("all");
@@ -5337,7 +5490,23 @@
                 ];
 
                 return (
-                    <div className="space-y-5">
+                    <div className="space-y-4">
+                        {/* تبويبات المخزن */}
+                        <div className="flex items-center gap-1 bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5 w-fit">
+                            {[
+                                {id:'main',      label:'المخزن الرئيسي', icon:'ph-package'},
+                                {id:'reconcile', label:'تسوية المخزن',   icon:'ph-scales'},
+                                {id:'opening',   label:'مخزن أول المدة', icon:'ph-archive-box'},
+                            ].map(t => (
+                                <button key={t.id} onClick={() => setInvTab(t.id)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${invTab===t.id?'bg-slate-900 text-white shadow-md':'text-slate-500 hover:bg-slate-100'}`}>
+                                    <i className={`ph-fill ${t.icon}`}></i> {t.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* =========== تبويب المخزن الرئيسي =========== */}
+                        {invTab === 'main' && (<div className="space-y-5">
                         {/* الهيدر */}
                         <div className="flex justify-between items-center flex-wrap gap-2">
                             <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
@@ -5455,15 +5624,15 @@
                                             const stockVal = Math.max(0, stk) * item.sellPrice;
                                             let stockStyle = 'bg-blue-50 text-blue-700';
                                             if (stk < 0)     stockStyle = 'bg-red-100 text-red-700 font-black';
-                                            else if (stk === 0) stockStyle = 'bg-rose-100 text-rose-600 font-black';
+                                            else if (stk === 0) stockStyle = 'bg-rose-600 text-white font-black shadow-sm';
                                             else if (stk < 5)   stockStyle = 'bg-amber-100 text-amber-700 font-black';
                                             return (
                                                 <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                                                     <td className="p-3">
                                                         <div className="flex items-center gap-2">
                                                             {stk < 0 && <span className="text-[10px] font-black bg-red-100 text-red-600 px-1.5 py-0.5 rounded-md">سالب!</span>}
-                                                            {stk === 0 && <span className="text-[10px] font-black bg-rose-100 text-rose-500 px-1.5 py-0.5 rounded-md">نفد</span>}
-                                                            <div>
+                                                          {stk === 0 && <span className="text-[10px] font-black text-rose-600 px-1.5 py-0.5 rounded-md border border-rose-200 bg-rose-50/30">نفد</span>}
+ <div>
                                                                 <div className="font-black text-slate-800 text-sm">{item.name}</div>
                                                                 {item.company && <div className="text-[10px] text-slate-400">{item.company}</div>}
                                                             </div>
@@ -5516,6 +5685,236 @@
                                 )}
                             </div>
                         </div>
+                        </div>)} {/* end main tab */}
+
+                        {/* =========== تبويب تسوية المخزن =========== */}
+                        {invTab === 'reconcile' && (() => {
+                            const ReconcileTab = () => {
+                                const [adjustments, setAdjustments] = useState(() =>
+                                    inventory.map(i => ({ id: i.id, name: i.name, company: i.company, currentStock: Number(i.stock)||0, actualStock: Number(i.stock)||0, note: '' }))
+                                );
+                                const [search, setSearch] = useState('');
+                                const [saved, setSaved] = useState(false);
+                                const filtered = adjustments.filter(a => a.name.toLowerCase().includes(search.toLowerCase()));
+                                const changes = adjustments.filter(a => a.actualStock !== a.currentStock);
+
+                                const applyReconcile = () => {
+                                    if (!changes.length) return notify('لا توجد تعديلات', 'info');
+                                    if (!confirm(`سيتم تعديل ${changes.length} صنف. هل تريد الاستمرار؟`)) return;
+                                    const newInv = inventory.map(item => {
+                                        const adj = adjustments.find(a => a.id === item.id);
+                                        if (!adj || adj.actualStock === adj.currentStock) return item;
+                                        const updated = {...item, stock: adj.actualStock};
+                                        saveItemToCloud('inventory', updated);
+                                        return updated;
+                                    });
+                                    setInventory(newInv);
+                                    setSaved(true);
+                                    notify(`✅ تمت تسوية ${changes.length} صنف`);
+                                };
+
+                                return (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between flex-wrap gap-3">
+                                            <div>
+                                                <h3 className="text-xl font-black text-slate-800 flex items-center gap-2"><i className="ph-fill ph-scales text-amber-500 text-2xl"></i> تسوية المخزن</h3>
+                                                <p className="text-sm text-slate-500 mt-0.5">قارن المخزن الفعلي مع المسجل وصحّح الفروقات</p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                {changes.length > 0 && (
+                                                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold" style={{background:'rgba(251,191,36,0.1)',border:'1px solid rgba(251,191,36,0.3)',color:'rgb(217,119,6)'}}>
+                                                        <i className="ph-fill ph-warning-circle"></i> {changes.length} صنف بحاجة تعديل
+                                                    </div>
+                                                )}
+                                                <button onClick={applyReconcile} className="px-5 py-2 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2">
+                                                    <i className="ph-fill ph-check-circle"></i> تطبيق التسوية
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <input type="text" className="input-field" placeholder="🔍 بحث عن صنف..." value={search} onChange={e=>setSearch(e.target.value)} />
+                                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-right text-sm" style={{minWidth:'600px'}}>
+                                                    <thead className="bg-slate-800 text-white text-xs font-bold">
+                                                        <tr>
+                                                            <th className="p-3">الصنف</th>
+                                                            <th className="p-3 text-center">المخزن المسجّل</th>
+                                                            <th className="p-3 text-center">المخزن الفعلي</th>
+                                                            <th className="p-3 text-center">الفرق</th>
+                                                            <th className="p-3">ملاحظة</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-50">
+                                                        {filtered.map((a,i) => {
+                                                            const diff = a.actualStock - a.currentStock;
+                                                            return (
+                                                                <tr key={a.id} className={`transition-colors ${diff !== 0 ? 'bg-amber-50' : 'hover:bg-slate-50'}`}>
+                                                                    <td className="p-3 font-bold text-slate-800">{a.name}<br/><span className="text-[10px] text-slate-400">{a.company}</span></td>
+                                                                    <td className="p-3 text-center font-black text-blue-700">{a.currentStock}</td>
+                                                                    <td className="p-3 text-center">
+                                                                        <input type="number" className="w-20 text-center font-black rounded-lg border px-2 py-1 text-sm focus:outline-none focus:border-blue-400"
+                                                                            style={{borderColor: diff!==0?'#f59e0b':'#e2e8f0', background: diff!==0?'#fffbeb':'#f8fafc'}}
+                                                                            value={a.actualStock}
+                                                                            onChange={e => setAdjustments(adjustments.map((x,j) => j===i ? {...x, actualStock: Number(e.target.value)} : x))} />
+                                                                    </td>
+                                                                    <td className="p-3 text-center">
+                                                                        {diff !== 0 ? (
+                                                                            <span className={`font-black text-sm ${diff>0?'text-emerald-600':'text-red-600'}`}>{diff>0?'+':''}{diff}</span>
+                                                                        ) : <span className="text-slate-300 text-xs">—</span>}
+                                                                    </td>
+                                                                    <td className="p-3">
+                                                                        <input type="text" placeholder="سبب التعديل..." className="w-full text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-300 bg-transparent"
+                                                                            value={a.note}
+                                                                            onChange={e => setAdjustments(adjustments.map((x,j) => j===i ? {...x, note:e.target.value} : x))} />
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            };
+                            return <ReconcileTab />;
+                        })()}
+
+                        {/* =========== تبويب مخزن أول المدة =========== */}
+                        {invTab === 'opening' && (() => {
+                            const OpeningTab = () => {
+                                const [openingKey] = useState('barq_opening_stock');
+                                const [openingData, setOpeningData] = useState(() => {
+                                    try { return JSON.parse(localStorage.getItem('barq_opening_stock') || '[]'); } catch { return []; }
+                                });
+                                const [openDate, setOpenDate] = useState(() => localStorage.getItem('barq_opening_date') || new Date().toISOString().split('T')[0]);
+                                const [newRow, setNewRow] = useState({name:'', company:'', qty:0, cost:0});
+                                const [editIdx, setEditIdx] = useState(null);
+
+                                useEffect(() => { localStorage.setItem('barq_opening_stock', JSON.stringify(openingData)); }, [openingData]);
+                                useEffect(() => { localStorage.setItem('barq_opening_date', openDate); }, [openDate]);
+
+                                const addRow = () => {
+                                    if (!newRow.name.trim()) return notify('أدخل اسم الصنف','error');
+                                    setOpeningData([...openingData, {...newRow, id:Date.now(), qty:Number(newRow.qty), cost:Number(newRow.cost)}]);
+                                    setNewRow({name:'',company:'',qty:0,cost:0});
+                                };
+                                const deleteRow = (id) => setOpeningData(openingData.filter(r=>r.id!==id));
+                                const totalValue = openingData.reduce((a,r)=>a+(Number(r.qty)||0)*(Number(r.cost)||0),0);
+                                const totalQty   = openingData.reduce((a,r)=>a+(Number(r.qty)||0),0);
+
+                                const importToInventory = () => {
+                                    if (!openingData.length) return notify('لا توجد بيانات','error');
+                                    if (!confirm(`استيراد ${openingData.length} صنف إلى المخزن الرئيسي؟\nسيُضاف/يُحدّث المخزن الحالي بالكميات المدخلة.`)) return;
+                                    let newInv = [...inventory];
+                                    openingData.forEach(r => {
+                                        const idx = newInv.findIndex(i => i.name.trim()===r.name.trim());
+                                        if (idx >= 0) {
+                                            newInv[idx] = {...newInv[idx], stock: Number(newInv[idx].stock||0)+Number(r.qty)};
+                                            saveItemToCloud('inventory', newInv[idx]);
+                                        } else {
+                                            const ni = {id:Date.now()+Math.random(), name:r.name, company:r.company||'', buyPrice:Number(r.cost), sellPrice:Number(r.cost), stock:Number(r.qty)};
+                                            newInv.push(ni);
+                                            saveItemToCloud('inventory', ni);
+                                        }
+                                    });
+                                    setInventory(newInv);
+                                    notify(`✅ تم استيراد ${openingData.length} صنف إلى المخزن`);
+                                };
+
+                                return (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between flex-wrap gap-3">
+                                            <div>
+                                                <h3 className="text-xl font-black text-slate-800 flex items-center gap-2"><i className="ph-fill ph-archive-box text-indigo-500 text-2xl"></i> مخزن أول المدة</h3>
+                                                <p className="text-sm text-slate-500 mt-0.5">سجّل بضاعة البداية ثم استوردها للمخزن</p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                                    <span>تاريخ الافتتاح:</span>
+                                                    <input type="date" className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold focus:outline-none focus:border-blue-400" value={openDate} onChange={e=>setOpenDate(e.target.value)} />
+                                                </div>
+                                                <button onClick={importToInventory} className="px-5 py-2 rounded-xl text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 flex items-center gap-2">
+                                                    <i className="ph-fill ph-arrow-square-in"></i> استيراد للمخزن
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* بطاقات الإجمالي */}
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div className="bg-indigo-600 text-white p-4 rounded-2xl text-center"><p className="text-xs opacity-70 mb-1">عدد الأصناف</p><p className="text-2xl font-black">{openingData.length}</p></div>
+                                            <div className="bg-slate-800 text-white p-4 rounded-2xl text-center"><p className="text-xs opacity-70 mb-1">إجمالي الكمية</p><p className="text-2xl font-black">{totalQty.toLocaleString()}</p></div>
+                                            <div className="bg-emerald-600 text-white p-4 rounded-2xl text-center"><p className="text-xs opacity-70 mb-1">إجمالي القيمة</p><p className="text-xl font-black">{totalValue.toLocaleString()} <span className="text-xs">ر</span></p></div>
+                                        </div>
+
+                                        {/* نموذج الإضافة */}
+                                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                                            <p className="text-sm font-black text-slate-600 mb-3 flex items-center gap-2"><i className="ph-fill ph-plus-circle text-indigo-500"></i> إضافة صنف</p>
+                                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+                                                <div className="md:col-span-2"><label className="input-label">اسم الصنف *</label><input type="text" className="input-field" value={newRow.name} onChange={e=>setNewRow({...newRow,name:e.target.value})} onKeyDown={e=>e.key==='Enter'&&addRow()} /></div>
+                                                <div><label className="input-label">الشركة</label><input type="text" className="input-field" value={newRow.company} onChange={e=>setNewRow({...newRow,company:e.target.value})} /></div>
+                                                <div><label className="input-label">الكمية</label><input type="number" className="input-field text-center" min="0" value={newRow.qty} onChange={e=>setNewRow({...newRow,qty:e.target.value})} /></div>
+                                                <div className="flex gap-2 items-end">
+                                                    <div className="flex-1"><label className="input-label">التكلفة</label><input type="number" className="input-field text-center" min="0" value={newRow.cost} onChange={e=>setNewRow({...newRow,cost:e.target.value})} /></div>
+                                                    <button onClick={addRow} className="bg-indigo-600 text-white px-3 py-3 rounded-xl font-black hover:bg-indigo-700 h-[50px] flex items-center gap-1"><i className="ph-bold ph-plus"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* جدول مخزن أول المدة */}
+                                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-right text-sm" style={{minWidth:'500px'}}>
+                                                    <thead className="bg-indigo-700 text-white text-xs font-bold">
+                                                        <tr>
+                                                            <th className="p-3">#</th>
+                                                            <th className="p-3">الصنف</th>
+                                                            <th className="p-3 text-center">الكمية</th>
+                                                            <th className="p-3 text-center">التكلفة/وحدة</th>
+                                                            <th className="p-3 text-center">الإجمالي</th>
+                                                            <th className="p-3 text-center">حذف</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-50">
+                                                        {openingData.map((r,i) => (
+                                                            <tr key={r.id} className="hover:bg-slate-50">
+                                                                <td className="p-3 text-slate-400 font-mono text-xs">{i+1}</td>
+                                                                <td className="p-3 font-bold text-slate-800">{r.name}<br/><span className="text-[10px] text-slate-400">{r.company}</span></td>
+                                                                <td className="p-3 text-center font-black text-blue-700">{Number(r.qty).toLocaleString()}</td>
+                                                                <td className="p-3 text-center font-bold text-slate-600">{Number(r.cost).toLocaleString()}</td>
+                                                                <td className="p-3 text-center font-black text-emerald-700">{(Number(r.qty)*Number(r.cost)).toLocaleString()}</td>
+                                                                <td className="p-3 text-center">
+                                                                    <button onClick={()=>deleteRow(r.id)} className="w-7 h-7 rounded-lg flex items-center justify-center mx-auto hover:bg-red-100 text-red-500"><i className="ph ph-trash text-sm"></i></button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                    {openingData.length > 0 && (
+                                                        <tfoot className="bg-slate-100 border-t-2 font-black text-sm text-slate-700">
+                                                            <tr>
+                                                                <td colSpan="2" className="p-3">الإجمالي ({openingData.length} صنف)</td>
+                                                                <td className="p-3 text-center text-blue-700">{totalQty.toLocaleString()}</td>
+                                                                <td></td>
+                                                                <td className="p-3 text-center text-emerald-700">{totalValue.toLocaleString()} ر</td>
+                                                                <td></td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    )}
+                                                </table>
+                                                {openingData.length === 0 && (
+                                                    <div className="text-center py-10 text-slate-400">
+                                                        <i className="ph ph-archive-box text-4xl mb-2 block"></i>
+                                                        <p className="font-bold">لا توجد بيانات — أضف أصناف البداية</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            };
+                            return <OpeningTab />;
+                        })()}
+
                     </div>
                 );
             };
