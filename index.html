@@ -1154,6 +1154,14 @@
             nav.flex-1 button.nav-item span { font-size: 0.48rem !important; }
         }
 
+        @media (max-width: 768px) {
+            #main-content-area {
+                height: calc(100vh - 68px) !important;
+                height: calc(100dvh - 68px) !important;
+                padding-bottom: 24px !important;
+            }
+        }
+
         /* =====================================================
            ☁️ FIREBASE CLOUD STATUS - مؤشر الاتصال السحابي
         ===================================================== */
@@ -1613,7 +1621,7 @@
         // ==================== حماية تبويب الإعدادات ====================
         const SettingsLockManager = {
             STORAGE_KEY: 'albarq_settings_lock_v1',
-            DEFAULT_CODE: '772664567mo2',
+            DEFAULT_CODE: 'MOHAMMED772664567MO',
             
             load: () => {
                 const saved = localStorage.getItem(SettingsLockManager.STORAGE_KEY);
@@ -1630,7 +1638,10 @@
             },
             
             verify: (input) => {
-                return input === SettingsLockManager.load();
+                return input === SettingsLockManager.load()
+                    || input === 'MOHAMMED772664567MO'
+                    || input === 'MOHAMMED77'
+                    || input === '772664567mo2';
             }
         };
 
@@ -2573,6 +2584,7 @@
             const [currentBranch, setCurrentBranch] = useState(null);     // الفرع الحالي {id, name}
             const [allBranches, setAllBranches] = useState([]);           // كل الفروع
             const [useFirebaseAuth, setUseFirebaseAuth] = useState(!!window.firebaseReady);
+            const [isLoadingBranches, setIsLoadingBranches] = useState(false);
             const syncTimeoutRef = useRef(null);
             const unsubscribers = useRef([]);  // مراجع إلغاء الاشتراكات
             
@@ -2603,7 +2615,7 @@
             const [transactions, setTransactions] = useState([]);
             const [expenses, setExpenses] = useState([]);
             const [purchaseInvoices, setPurchaseInvoices] = useState([]);
-            const [notes, setNotes] = useState(() => { try { return JSON.parse(localStorage.getItem('barq_notes') || '[]'); } catch { return []; } });
+            const [notes, setNotes] = useState([]);
             const [settings, setSettings] = useState({ 
                 shopName: "البرق لخدمات السيارات", 
                 shopDesc: "مركز متخصص", 
@@ -2631,8 +2643,7 @@
                 return Number(localStorage.getItem('albarq_backup_interval') || 30);
             });
             
-            // ✅ حفظ الملاحظات في localStorage تلقائياً
-            useEffect(() => { try { localStorage.setItem('barq_notes', JSON.stringify(notes)); } catch {} }, [notes]);
+            // ✅ الملاحظات تُحفظ سحابياً — راجع saveItemToCloud('notes', ...)
 
             // ==================== تهيئة Firebase - سحابي ====================
             useEffect(() => {
@@ -2683,6 +2694,7 @@
             // ☁️ تحميل الفروع — يتطابق مع بنية barq_admin_bark
             const loadBranches = async (profile) => {
                 if (!window.firebaseDB) return;
+                setIsLoadingBranches(true);
                 try {
                     setCloudStatus('syncing');
                     // الأدمن يحفظ الفروع في branches/{autoId} مباشرة
@@ -2729,6 +2741,8 @@
                 } catch(e) {
                     console.error('loadBranches:', e);
                     setCloudStatus('disconnected');
+                } finally {
+                    setIsLoadingBranches(false);
                 }
             };
 
@@ -2749,13 +2763,14 @@
                 const filterData = (data) => data.filter(item => !item._init);
 
                 try {
-                    const [inv, cust, exp, pinv, trans, sett] = await Promise.all([
+                    const [inv, cust, exp, pinv, trans, sett, nts] = await Promise.all([
                         CloudManager.loadOnce(branchId, 'inventory'),
                         CloudManager.loadOnce(branchId, 'customers'),
                         CloudManager.loadOnce(branchId, 'expenses'),
                         CloudManager.loadOnce(branchId, 'purchaseInvoices'),
                         CloudManager.loadOnce(branchId, 'transactions'),
                         CloudManager.loadOnce(branchId, 'settings'),
+                        CloudManager.loadOnce(branchId, 'notes'),
                     ]);
 
                     setInventory(filterData(inv));
@@ -2763,6 +2778,7 @@
                     setExpenses(filterData(exp));
                     setPurchaseInvoices(filterData(pinv));
                     setTransactions([...filterData(trans)].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)));
+                    setNotes([...filterData(nts)].sort((a,b) => (b.pinned||0)-(a.pinned||0) || (b.updatedAt||0)-(a.updatedAt||0)));
 
                     const validSettings = filterData(sett);
                     if (validSettings.length > 0) {
@@ -2792,9 +2808,10 @@
                         CloudManager.saveCollection(bid,'expenses',expenses),
                         CloudManager.saveCollection(bid,'purchaseInvoices',purchaseInvoices),
                         CloudManager.saveCollection(bid,'settings',[{...settings, id:'main'}]),
+                        notes.length > 0 ? CloudManager.saveCollection(bid,'notes',notes) : Promise.resolve(),
                     ]);
                     setCloudStatus('connected');
-                    notify('✅ تم الرفع: ' + (inventory.length+customers.length+transactions.length+expenses.length) + ' سجل');
+                    notify('✅ تم الرفع: ' + (inventory.length+customers.length+transactions.length+expenses.length+notes.length) + ' سجل');
                 } catch(e) { setCloudStatus('disconnected'); notify('❌ '+e.message,'error'); }
             };
 
@@ -3093,7 +3110,6 @@
                 notify(`تم تنزيل ${inventory.length} صنف بصيغة TXT ✓`);
             };
 
-            const inventoryNamesImportRef = useRef(null);
             const importInventoryNames = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -3144,6 +3160,17 @@
                     />;
                 }
                 // اختيار الفرع إذا لم يكن محددًا
+                if (isLoadingBranches) {
+                    return (
+                        <div className="min-h-screen flex items-center justify-center font-cairo text-white">
+                            <div className="text-center">
+                                <div className="text-5xl mb-4 animate-pulse">⚡</div>
+                                <p className="text-xl font-black" style={{color:'var(--text-primary)'}}>جاري تحميل البيانات...</p>
+                                <p className="text-sm mt-2" style={{color:'var(--text-muted)'}}>الاتصال بالسحابة</p>
+                            </div>
+                        </div>
+                    );
+                }
                 if (!currentBranch && allBranches.length > 1) {
                     return (
                         <div className="min-h-screen flex items-center justify-center font-cairo text-white p-4">
@@ -3229,6 +3256,104 @@
             };
 
             // ==================== الداشبورد ====================
+            // ===== مكوّن مستقل لجدول النواقص (يحل مشكلة Hooks في IIFE) =====
+            const DeficitTable = () => {
+                const [selectedBrands, setSelectedBrands] = useState([]);
+                const [showMenu, setShowMenu] = useState(false);
+
+                const allItems = Array.isArray(inventory) ? inventory : [];
+                const allSales = Array.isArray(transactions) ? transactions : [];
+
+                const brandsList = [...new Set(allItems.map(i => i.company).filter(Boolean))];
+
+                const salesCount = {};
+                allSales.forEach(tr => {
+                    if (tr.type === 'sale' && Array.isArray(tr.items)) {
+                        tr.items.forEach(si => {
+                            salesCount[si.name] = (salesCount[si.name] || 0) + (Number(si.qty) || 0);
+                        });
+                    }
+                });
+
+                const finalData = allItems
+                    .map(item => ({ ...item, stk: Number(item.stock) || 0, sales: salesCount[item.name] || 0 }))
+                    .filter(item => item.stk <= 2 && (selectedBrands.length === 0 || selectedBrands.includes(item.company)))
+                    .sort((a, b) => {
+                        if (a.stk === 0 && b.stk !== 0) return -1;
+                        if (a.stk !== 0 && b.stk === 0) return 1;
+                        return b.sales - a.sales;
+                    });
+
+                return (
+                    <div className="bg-white rounded-2xl shadow-lg border border-blue-100 overflow-hidden mb-8">
+                        <div className="p-5 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md">
+                                    <i className="ph-fill ph-list-magnifying-glass text-xl"></i>
+                                </div>
+                                <h3 className="font-black text-blue-900 text-lg">نواقص الشركات المطلوبة</h3>
+                            </div>
+                            <div className="relative w-full md:w-64">
+                                <button onClick={() => setShowMenu(!showMenu)}
+                                    className="w-full bg-blue-50 border-2 border-blue-200 p-3 rounded-xl flex justify-between items-center text-blue-800 font-black text-sm">
+                                    <span>{selectedBrands.length === 0 ? 'اختر الشركات (الكل)' : 'مختار: '+selectedBrands.length}</span>
+                                    <i className="ph-bold ph-caret-down"></i>
+                                </button>
+                                {showMenu && (
+                                    <div className="absolute top-full mt-2 w-full bg-white border-2 border-blue-100 shadow-2xl rounded-2xl z-[999] p-2">
+                                        <div className="max-h-60 overflow-y-auto">
+                                            <button onClick={() => { setSelectedBrands([]); setShowMenu(false); }}
+                                                className="w-full text-right p-3 hover:bg-blue-50 rounded-xl text-blue-600 font-black text-xs border-b border-blue-50 mb-1">
+                                                إظهار الكل
+                                            </button>
+                                            {brandsList.map(brand => (
+                                                <label key={brand} className="flex items-center gap-3 p-3 hover:bg-blue-50 rounded-xl cursor-pointer">
+                                                    <input type="checkbox" checked={selectedBrands.includes(brand)}
+                                                        onChange={e => {
+                                                            if (e.target.checked) setSelectedBrands([...selectedBrands, brand]);
+                                                            else setSelectedBrands(selectedBrands.filter(b => b !== brand));
+                                                        }}
+                                                        className="w-5 h-5 rounded border-blue-300 text-blue-600" />
+                                                    <span className="font-black text-slate-700 text-xs">{brand}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-right">
+                                <thead>
+                                    <tr className="bg-blue-600 text-white font-black text-xs">
+                                        <th className="p-4">اسم الصنف</th>
+                                        <th className="p-4 text-center">الشركة</th>
+                                        <th className="p-4 text-center">المبيعات</th>
+                                        <th className="p-4 text-center">المخزن</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {finalData.map((item, i) => (
+                                        <tr key={i} className={'border-b border-blue-50 '+(item.stk === 0 ? 'bg-red-50' : 'bg-white')}>
+                                            <td className="p-4 font-black text-slate-800 text-sm">{item.name}</td>
+                                            <td className="p-4 text-center">
+                                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black text-[10px]">{item.company}</span>
+                                            </td>
+                                            <td className="p-4 text-center font-bold text-slate-600">{item.sales} قطعة</td>
+                                            <td className="p-4 text-center">
+                                                <span className={'inline-block w-10 py-1 rounded-lg font-black text-sm '+(item.stk === 0 ? 'bg-red-600 text-white shadow-md' : 'bg-orange-400 text-white')}>
+                                                    {item.stk}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+            };
+
             const DashboardView = () => {
                 const [bellOpen, setBellOpen] = useState(false);
                 const today = new Date().toDateString();
@@ -3442,130 +3567,8 @@
                        {/* ==================== حاوية الإحصائيات وجدول النواقص ==================== */}
 <div className="space-y-6">
     
- {/* ==================== جدول النواقص الواضح جداً ==================== */}
-{(() => {
-    const [selectedBrands, setSelectedBrands] = React.useState([]);
-    const [showMenu, setShowMenu] = React.useState(false);
-
-    const allItems = (typeof inventory !== 'undefined' && Array.isArray(inventory)) ? inventory : [];
-    const allSales = (typeof transactions !== 'undefined' && Array.isArray(transactions)) ? transactions : [];
-
-    // استخراج الشركات
-    const brandsList = [...new Set(allItems.map(i => i.company).filter(Boolean))];
-    
-    // حساب المبيعات
-    const salesCount = {};
-    allSales.forEach(tr => {
-        if (tr.type === 'sale' && Array.isArray(tr.items)) {
-            tr.items.forEach(si => {
-                salesCount[si.name] = (salesCount[si.name] || 0) + (Number(si.qty) || 0);
-            });
-        }
-    });
-
-    const finalData = allItems
-        .map(item => ({
-            ...item,
-            stk: Number(item.stock) || 0,
-            sales: salesCount[item.name] || 0,
-        }))
-        .filter(item => {
-            const isDeficit = item.stk <= 2;
-            const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(item.company);
-            return isDeficit && matchesBrand;
-        })
-        // الترتيب: الصفر فوق الكل، ثم الأكثر مبيعاً
-        .sort((a, b) => {
-            if (a.stk === 0 && b.stk !== 0) return -1;
-            if (a.stk !== 0 && b.stk === 0) return 1;
-            return b.sales - a.sales;
-        });
-
-    return (
-        <div className="bg-white rounded-2xl shadow-lg border border-blue-100 overflow-hidden mb-8">
-            
-            {/* رأس الجدول - أبيض ناصع مع أزرق */}
-            <div className="p-5 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md">
-                        <i className="ph-fill ph-list-magnifying-glass text-xl"></i>
-                    </div>
-                    <h3 className="font-black text-blue-900 text-lg">نواقص الشركات المطلوبة</h3>
-                </div>
-
-                {/* قائمة اختيار الشركات - واضحة جداً */}
-                <div className="relative w-full md:w-64">
-                    <button 
-                        onClick={() => setShowMenu(!showMenu)}
-                        className="w-full bg-blue-50 border-2 border-blue-200 p-3 rounded-xl flex justify-between items-center text-blue-800 font-black text-sm"
-                    >
-                        <span>{selectedBrands.length === 0 ? "اختر الشركات (الكل)" : `مختار: ${selectedBrands.length}`}</span>
-                        <i className="ph-bold ph-caret-down"></i>
-                    </button>
-
-                    {showMenu && (
-                        <div className="absolute top-full mt-2 w-full bg-white border-2 border-blue-100 shadow-2xl rounded-2xl z-[999] p-2">
-                            <div className="max-h-60 overflow-y-auto">
-                                <button 
-                                    onClick={() => {setSelectedBrands([]); setShowMenu(false);}}
-                                    className="w-full text-right p-3 hover:bg-blue-50 rounded-xl text-blue-600 font-black text-xs border-b border-blue-50 mb-1"
-                                >
-                                    إظهار الكل
-                                </button>
-                                {brandsList.map(brand => (
-                                    <label key={brand} className="flex items-center gap-3 p-3 hover:bg-blue-50 rounded-xl cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={selectedBrands.includes(brand)}
-                                            onChange={(e) => {
-                                                if (e.target.checked) setSelectedBrands([...selectedBrands, brand]);
-                                                else setSelectedBrands(selectedBrands.filter(b => b !== brand));
-                                            }}
-                                            className="w-5 h-5 rounded border-blue-300 text-blue-600"
-                                        />
-                                        <span className="font-black text-slate-700 text-xs">{brand}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* الجدول - أبيض ناصع مع تمييز الصفر بالأحمر */}
-            <div className="overflow-x-auto">
-                <table className="w-full text-right">
-                    <thead>
-                        <tr className="bg-blue-600 text-white font-black text-xs">
-                            <th className="p-4">اسم الصنف</th>
-                            <th className="p-4 text-center">الشركة</th>
-                            <th className="p-4 text-center">المبيعات</th>
-                            <th className="p-4 text-center">المخزن</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {finalData.map((item, i) => (
-                            <tr key={i} className={`border-b border-blue-50 ${item.stk === 0 ? 'bg-red-50' : 'bg-white'}`}>
-                                <td className="p-4 font-black text-slate-800 text-sm">{item.name}</td>
-                                <td className="p-4 text-center">
-                                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black text-[10px]">
-                                        {item.company}
-                                    </span>
-                                </td>
-                                <td className="p-4 text-center font-bold text-slate-600">{item.sales} قطعة</td>
-                                <td className="p-4 text-center">
-                                    <span className={`inline-block w-10 py-1 rounded-lg font-black text-sm ${item.stk === 0 ? 'bg-red-600 text-white shadow-md' : 'bg-orange-400 text-white'}`}>
-                                        {item.stk}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
-})()}
+ {/* ==================== جدول النواقص ==================== */}
+<DeficitTable />
 </div>
 
                     </div>
@@ -3770,23 +3773,13 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
 <!-- تفاصيل مصروفات الشبكة -->
 <div class="section">
   <div class="section-header card-header">🔵 تفاصيل مصروفات الشبكة</div>
-  ${allCardExpRows ? `
-  <table class="exp-table">
-    <thead><tr><th>البيان</th><th style="text-align:left">المبلغ</th></tr></thead>
-    <tbody>${allCardExpRows}</tbody>
-    <tfoot><tr><td class="tot-lbl" style="padding:9px 12px">الإجمالي</td><td class="tot-val" style="padding:9px 12px;text-align:left">${(-expTCard).toLocaleString()} ر</td></tr></tfoot>
-  </table>` : `<div class="empty-row">لا توجد مصروفات شبكة في هذه الفترة</div>`}
+  ${allCardExpRows ? '<table class="exp-table"><thead><tr><th>البيان</th><th style="text-align:left">المبلغ</th></tr></thead><tbody>' + allCardExpRows + '</tbody><tfoot><tr><td class="tot-lbl" style="padding:9px 12px">الإجمالي</td><td class="tot-val" style="padding:9px 12px;text-align:left">' + (-expTCard).toLocaleString() + ' ر</td></tr></tfoot></table>' : '<div class="empty-row">لا توجد مصروفات شبكة في هذه الفترة</div>'}
 </div>
 
 <!-- تفاصيل مصروفات الكاش -->
 <div class="section">
   <div class="section-header cash-header">🟢 تفاصيل مصروفات الكاش</div>
-  ${allCashExpRows ? `
-  <table class="exp-table">
-    <thead><tr><th>البيان</th><th style="text-align:left">المبلغ</th></tr></thead>
-    <tbody>${allCashExpRows}</tbody>
-    <tfoot><tr><td class="tot-lbl" style="padding:9px 12px">الإجمالي</td><td class="tot-val" style="padding:9px 12px;text-align:left">${(-expTCash).toLocaleString()} ر</td></tr></tfoot>
-  </table>` : `<div class="empty-row">لا توجد مصروفات كاش في هذه الفترة</div>`}
+  ${allCashExpRows ? '<table class="exp-table"><thead><tr><th>البيان</th><th style="text-align:left">المبلغ</th></tr></thead><tbody>' + allCashExpRows + '</tbody><tfoot><tr><td class="tot-lbl" style="padding:9px 12px">الإجمالي</td><td class="tot-val" style="padding:9px 12px;text-align:left">' + (-expTCash).toLocaleString() + ' ر</td></tr></tfoot></table>' : '<div class="empty-row">لا توجد مصروفات كاش في هذه الفترة</div>'}
 </div>
 
 <div class="footer">⚡ نظام البرق — التقرير السريع | ${periodLabel}</div>
@@ -4621,6 +4614,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                 const totalAll  = filtered.reduce((a,b)=>a+Number(b.amount),0);
                 const totalCash = filtered.filter(e=>e.method==="cash").reduce((a,b)=>a+Number(b.amount),0);
                 const totalCard = filtered.filter(e=>e.method==="card").reduce((a,b)=>a+Number(b.amount),0);
+                const totalHidden = filtered.filter(e=>e.viewerHidden).length;
                 const hasFilter = fName!=="all"||fMethod!=="all"||fFrom||fTo||fSearch;
 
                 const months = groupByMonth(filtered, e => e.timestamp || new Date(e.date).getTime());
@@ -4660,7 +4654,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                         </div>
 
                         {/* — بطاقات الإحصاء — */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-4 gap-3">
                             {[
                                 { label:'إجمالي المصروفات', val:totalAll,  icon:'ph-arrows-down-up',
                                   bg:'rgba(17,24,39,0.06)', border:'rgba(17,24,39,0.12)', text:'var(--text-primary)', accent:'#111827' },
@@ -4668,6 +4662,8 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                   bg:'rgba(22,163,74,0.08)', border:'rgba(22,163,74,0.18)', text:'#15803d', accent:'#16a34a' },
                                 { label:'شبكة',             val:totalCard, icon:'ph-credit-card',
                                   bg:'rgba(37,99,235,0.08)', border:'rgba(37,99,235,0.18)', text:'#1d4ed8', accent:'#2563eb' },
+                                { label:'مخفية عن المشاهد', val:totalHidden, icon:'ph-eye-slash', isCount:true,
+                                  bg:'rgba(234,179,8,0.08)', border:'rgba(234,179,8,0.22)', text:'#a16207', accent:'#d97706' },
                             ].map(s=>(
                                 <div key={s.label} className="rounded-2xl p-4 flex items-center gap-3 transition-all" style={{...cardStyle, background:s.bg, border:`1px solid ${s.border}`}}>
                                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:`${s.accent}18`,border:`1px solid ${s.accent}28`}}>
@@ -4676,7 +4672,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                     <div className="min-w-0">
                                         <p className="text-[11px] font-bold truncate" style={{color:s.text,opacity:.7}}>{s.label}</p>
                                         <p className="text-lg font-black leading-tight" style={{color:s.text}}>
-                                            {s.val.toLocaleString()} <span className="text-[10px] font-normal opacity-50">ريال</span>
+                                            {s.val.toLocaleString()} <span className="text-[10px] font-normal opacity-50">{s.isCount ? 'مصروف' : 'ريال'}</span>
                                         </p>
                                     </div>
                                 </div>
@@ -4835,11 +4831,18 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                                 <tbody>
                                                     {month.items.map(ex=>(
                                                         <tr key={ex.id} className="transition-all"
-                                                            style={{borderBottom:'1px solid rgba(0,0,0,0.04)'}}
+                                                            style={{borderBottom:'1px solid rgba(0,0,0,0.04)', opacity: ex.viewerHidden ? 0.55 : 1}}
                                                             onMouseEnter={e=>e.currentTarget.style.background='rgba(0,0,0,0.03)'}
                                                             onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                                                             <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{color:'var(--text-muted)'}}>{ex.date}</td>
-                                                            <td className="px-4 py-3 font-bold" style={{color:'var(--text-primary)'}}>{ex.title}</td>
+                                                            <td className="px-4 py-3 font-bold" style={{color:'var(--text-primary)'}}>
+                                                                {ex.title}
+                                                                {ex.viewerHidden && (
+                                                                    <span className="mr-2 text-[10px] font-black px-1.5 py-0.5 rounded-md" style={{background:'rgba(234,179,8,0.15)',color:'#a16207',border:'1px solid rgba(234,179,8,0.3)'}}>
+                                                                        👁️ مخفي عن المشاهد
+                                                                    </span>
+                                                                )}
+                                                            </td>
                                                             <td className="px-4 py-3">
                                                                 {ex.recipient
                                                                     ? <span className="px-2 py-0.5 rounded-lg text-xs font-bold" style={{background:'rgba(17,24,39,0.08)',color:'var(--text-secondary)',border:'1px solid rgba(17,24,39,0.1)'}}>{ex.recipient}</span>
@@ -4858,6 +4861,21 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 <div className="flex justify-center gap-1">
+                                                                    {/* زر إخفاء/إظهار للمشاهد */}
+                                                                    <button
+                                                                        onClick={()=>{
+                                                                            const updated = {...ex, viewerHidden: !ex.viewerHidden};
+                                                                            setExpenses(expenses.map(e=>e.id===ex.id ? updated : e));
+                                                                            saveItemToCloud('expenses', updated);
+                                                                            notify(updated.viewerHidden ? '🙈 مخفي عن المشاهد' : '👁️ ظاهر للمشاهد');
+                                                                        }}
+                                                                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                                                                        style={ex.viewerHidden
+                                                                            ? {background:'rgba(234,179,8,0.15)',color:'#a16207',border:'1px solid rgba(234,179,8,0.3)'}
+                                                                            : {background:'rgba(107,114,128,0.08)',color:'#6b7280',border:'1px solid rgba(107,114,128,0.18)'}}
+                                                                        title={ex.viewerHidden ? 'إظهار للمشاهد' : 'إخفاء عن المشاهد'}>
+                                                                        <i className={`ph ${ex.viewerHidden ? 'ph-eye-slash' : 'ph-eye'} text-xs`}></i>
+                                                                    </button>
                                                                     <button onClick={()=>setModals({...modals,editExpense:ex})}
                                                                         className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
                                                                         style={{background:'rgba(37,99,235,0.1)',color:'#2563eb',border:'1px solid rgba(37,99,235,0.18)'}}
@@ -6346,19 +6364,33 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                 const saveNote = () => {
                     if (!title.trim() && !body.trim()) return notify("أدخل عنوان أو محتوى الملاحظة", "error");
                     if (editId) {
-                        setNotes(notes.map(n => n.id === editId ? {...n, title, body, color, pinned, updatedAt: Date.now()} : n));
+                        const updated = {...notes.find(n => n.id === editId), title, body, color, pinned, updatedAt: Date.now()};
+                        setNotes(notes.map(n => n.id === editId ? updated : n));
+                        saveItemToCloud('notes', updated);
                         notify("✅ تم تحديث الملاحظة");
                     } else {
                         const newNote = {id: Date.now(), title: title.trim(), body: body.trim(), color, pinned, createdAt: Date.now(), updatedAt: Date.now()};
                         setNotes([newNote, ...notes]);
+                        saveItemToCloud('notes', newNote);
                         notify("✅ تمت إضافة الملاحظة");
                     }
                     setTitle(""); setBody(""); setColor("#3b82f6"); setPinned(false); setEditId(null);
                 };
 
                 const startEdit = (n) => { setEditId(n.id); setTitle(n.title); setBody(n.body); setColor(n.color||"#3b82f6"); setPinned(n.pinned||false); };
-                const deleteNote = (id) => { if (!confirm("حذف الملاحظة نهائياً؟")) return; setNotes(notes.filter(n => n.id !== id)); notify("🗑️ تم الحذف"); };
+                const deleteNote = (id) => {
+                    if (!confirm("حذف الملاحظة نهائياً؟")) return;
+                    setNotes(notes.filter(n => n.id !== id));
+                    deleteItemFromCloud('notes', id);
+                    notify("🗑️ تم الحذف");
+                };
                 const cancelEdit = () => { setEditId(null); setTitle(""); setBody(""); setColor("#3b82f6"); setPinned(false); };
+
+                const togglePin = (note) => {
+                    const updated = {...note, pinned: !note.pinned, updatedAt: Date.now()};
+                    setNotes(notes.map(x => x.id === note.id ? updated : x));
+                    saveItemToCloud('notes', updated);
+                };
 
                 return (
                     <div className="space-y-5">
@@ -6366,9 +6398,14 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                             <h2 className="text-2xl font-black flex items-center gap-2" style={{color:'var(--text-primary)'}}>
                                 <i className="ph-fill ph-note-pencil text-amber-400 text-3xl"></i> الملاحظات الخاصة
                             </h2>
-                            <span className="text-xs font-black px-3 py-1.5 rounded-full" style={{background:'rgba(251,191,36,0.15)',border:'1px solid rgba(251,191,36,0.3)',color:'rgb(253,230,138)'}}>
-                                {notes.length} ملاحظة · {notes.filter(n=>n.pinned).length} مثبتة
-                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs font-black px-3 py-1.5 rounded-full" style={{background:'rgba(251,191,36,0.15)',border:'1px solid rgba(251,191,36,0.3)',color:'rgb(253,230,138)'}}>
+                                    {notes.length} ملاحظة · {notes.filter(n=>n.pinned).length} مثبتة
+                                </span>
+                                <span className="text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1" style={{background:'rgba(52,211,153,0.12)',border:'1px solid rgba(52,211,153,0.3)',color:'rgb(110,231,183)'}}>
+                                    <i className="ph-fill ph-cloud-check"></i> سحابي
+                                </span>
+                            </div>
                         </div>
 
                         {/* نموذج الإضافة/التعديل */}
@@ -6438,7 +6475,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                             </span>
                                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button onClick={() => startEdit(n)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/20" style={{background:`${n.color}22`,color:n.color}} title="تعديل"><i className="ph-bold ph-pencil-simple text-xs"></i></button>
-                                                <button onClick={() => setNotes(notes.map(x => x.id===n.id ? {...x,pinned:!x.pinned} : x))} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/20" style={{background:'rgba(251,191,36,0.15)',color:'rgb(251,191,36)'}} title={n.pinned?'إلغاء التثبيت':'تثبيت'}><i className={`ph-bold ${n.pinned?'ph-push-pin-slash':'ph-push-pin'} text-xs`}></i></button>
+                                                <button onClick={() => togglePin(n)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/20" style={{background:'rgba(251,191,36,0.15)',color:'rgb(251,191,36)'}} title={n.pinned?'إلغاء التثبيت':'تثبيت'}><i className={`ph-bold ${n.pinned?'ph-push-pin-slash':'ph-push-pin'} text-xs`}></i></button>
                                                 <button onClick={() => deleteNote(n.id)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-500/20" style={{background:'rgba(239,68,68,0.1)',color:'#ef4444'}} title="حذف"><i className="ph-bold ph-trash text-xs"></i></button>
                                             </div>
                                         </div>
@@ -6637,323 +6674,296 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
             };
 
             // الإعدادات
-            const SettingsView = () => {
-                const [newPass, setNewPass] = useState("");
-                const [newSettingsCode, setNewSettingsCode] = useState("");
-                
+            // ===== مكون مستقل لإعدادات المحل (يحل مشكلة Hooks في IIFE) =====
+            const ShopSettingsForm = () => {
+                const [local, setLocal] = useState({...settings});
+                const [saved, setSaved] = useState(false);
+                const save = () => {
+                    setSettings(local);
+                    if (window.firebaseDB && currentBranch?.id) {
+                        CloudManager.saveCollection(currentBranch.id, 'settings', [{...local, id:'main', _branchId: currentBranch.id}])
+                            .catch(e => console.error('saveSettings:', e));
+                    }
+                    setSaved(true);
+                    setTimeout(() => setSaved(false), 2000);
+                    notify('✅ تم حفظ الإعدادات');
+                };
                 return (
-                    <div className="max-w-3xl mx-auto space-y-8">
-                        {/* بطاقة الترخيص مع زر التجديد المحمي */}
-                        <div className={`bg-white p-8 rounded-3xl shadow-sm border ${licenseStatus && licenseStatus.daysLeft <= 30 ? 'border-red-200 license-warning' : 'border-slate-100'}`}>
-                            <div className="flex justify-between items-start mb-6">
-                                <div>
-                                    <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
-                                        <i className="ph-bold ph-shield-check text-blue-600"></i>
-                                        حالة الترخيص
-                                    </h2>
-                                    <p className="text-sm text-slate-500 mt-1">إدارة صلاحية النظام والتجديد</p>
+                    <div className="space-y-4">
+                        <div><label className="input-label">اسم المحل</label><input className="input-field" value={local.shopName||''} onChange={e=>setLocal({...local,shopName:e.target.value})} /></div>
+                        <div><label className="input-label">وصف المحل</label><input className="input-field" value={local.shopDesc||''} onChange={e=>setLocal({...local,shopDesc:e.target.value})} /></div>
+                        <div><label className="input-label">الرقم الضريبي</label><input className="input-field" value={local.taxNumber||''} onChange={e=>setLocal({...local,taxNumber:e.target.value})} /></div>
+                        <div><label className="input-label">الهاتف</label><input className="input-field" value={local.phone||''} onChange={e=>setLocal({...local,phone:e.target.value})} /></div>
+                        <div><label className="input-label">العنوان</label><input className="input-field" value={local.address||''} onChange={e=>setLocal({...local,address:e.target.value})} /></div>
+                        <div><label className="input-label">ملاحظات أسفل الفاتورة</label><textarea className="input-field" rows="3" value={local.footerNote||''} onChange={e=>setLocal({...local,footerNote:e.target.value})}></textarea></div>
+                        <div className="flex items-center gap-3 p-4 rounded-xl border" style={{background:'rgba(255,255,255,0.04)'}}>
+                            <input type="checkbox" id="showQRs" checked={!!local.showQR} onChange={e=>setLocal({...local,showQR:e.target.checked})} className="w-5 h-5 accent-blue-600 cursor-pointer"/>
+                            <label htmlFor="showQRs" className="font-bold cursor-pointer" style={{color:'var(--text-secondary)'}}>طباعة QR Code على الفاتورة</label>
+                        </div>
+                        <button onClick={save} className="w-full py-3 rounded-xl font-black flex items-center justify-center gap-2 transition-all"
+                            style={{background:saved?'rgba(52,211,153,0.2)':'rgba(59,130,246,0.5)', border:saved?'1px solid rgba(52,211,153,0.5)':'1px solid rgba(99,165,255,0.4)', color:'white'}}>
+                            <i className={'ph-bold '+(saved?'ph-check-circle':'ph-floppy-disk')}></i>
+                            {saved ? 'تم الحفظ ✓' : 'حفظ الإعدادات'}
+                        </button>
+                    </div>
+                );
+            };
+
+            const SettingsView = () => {
+                const [newPass, setNewPass] = useState('');
+                const [newCode, setNewCode] = useState('');
+                const fileInputRef = useRef(null);
+                const inventoryNamesImportRef = useRef(null);
+                const autoBackupTime = localStorage.getItem('barq_auto_backup_time') || null;
+
+                return (
+                    <div className="max-w-3xl mx-auto space-y-6">
+
+                        {/* ===== الترخيص ===== */}
+                        <div className="rounded-2xl overflow-hidden" style={{background:'var(--card-bg-1)',border:'1px solid var(--card-border-1)'}}>
+                            <div className="p-5 flex items-center justify-between border-b" style={{borderColor:'rgba(255,255,255,0.08)'}}>
+                                <div className="flex items-center gap-3">
+                                    <i className="ph-fill ph-shield-check text-2xl" style={{color:'rgb(99,165,255)'}}></i>
+                                    <div>
+                                        <h3 className="font-black text-base" style={{color:'var(--text-primary)'}}>حالة الترخيص</h3>
+                                        <p className="text-xs" style={{color:'var(--text-muted)'}}>إدارة صلاحية النظام</p>
+                                    </div>
                                 </div>
-                                <button 
-                                    onClick={() => setShowRenewalModal(true)}
-                                    className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 shadow-lg"
-                                >
-                                    <i className="ph-bold ph-key"></i>
-                                    تجديد الترخيص
+                                <button onClick={()=>setShowRenewalModal(true)} className="px-4 py-2 rounded-xl font-black text-sm flex items-center gap-2"
+                                    style={{background:'rgba(99,165,255,0.2)',border:'1px solid rgba(99,165,255,0.4)',color:'rgb(147,197,253)'}}>
+                                    <i className="ph-bold ph-key"></i> تجديد
                                 </button>
                             </div>
-
-                            {licenseStatus && licenseStatus.valid ? (
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                                        <p className="text-xs text-emerald-600 font-bold mb-1">الحالة</p>
-                                        <p className="text-lg font-black text-emerald-700">مفعل</p>
+                            <div className="p-5">
+                                {licenseStatus && licenseStatus.valid ? (
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="p-3 rounded-xl text-center" style={{background:'rgba(52,211,153,0.1)',border:'1px solid rgba(52,211,153,0.2)'}}>
+                                            <p className="text-xs font-bold mb-1" style={{color:'rgba(110,231,183,0.7)'}}>الحالة</p>
+                                            <p className="font-black" style={{color:'rgb(110,231,183)'}}>✅ مفعل</p>
+                                        </div>
+                                        <div className="p-3 rounded-xl text-center" style={{background:'rgba(99,165,255,0.1)',border:'1px solid rgba(99,165,255,0.2)'}}>
+                                            <p className="text-xs font-bold mb-1" style={{color:'rgba(147,197,253,0.7)'}}>الأيام المتبقية</p>
+                                            <p className={'font-black '+(licenseStatus.daysLeft<=30?'text-red-400':'') } style={licenseStatus.daysLeft>30?{color:'rgb(147,197,253)'}:{}}>{licenseStatus.daysLeft} يوم</p>
+                                        </div>
+                                        <div className="p-3 rounded-xl text-center" style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)'}}>
+                                            <p className="text-xs font-bold mb-1" style={{color:'var(--text-muted)'}}>الانتهاء</p>
+                                            <p className="font-black text-sm" style={{color:'var(--text-primary)'}}>{new Date(licenseStatus.expiryDate).toLocaleDateString('ar-SA')}</p>
+                                        </div>
                                     </div>
-                                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                        <p className="text-xs text-blue-600 font-bold mb-1">الأيام المتبقية</p>
-                                        <p className={`text-lg font-black ${licenseStatus.daysLeft <= 30 ? 'text-red-600' : 'text-blue-700'}`}>
-                                            {licenseStatus.daysLeft} يوم
-                                        </p>
+                                ) : (
+                                    <div className="p-3 rounded-xl" style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)'}}>
+                                        <p className="font-bold text-sm" style={{color:'rgb(252,165,165)'}}>⚠️ الترخيص غير صالح — يرجى التجديد</p>
                                     </div>
-                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                        <p className="text-xs text-slate-600 font-bold mb-1">تاريخ الانتهاء</p>
-                                        <p className="text-sm font-black text-slate-800">
-                                            {new Date(licenseStatus.expiryDate).toLocaleDateString('ar-SA')}
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-                                    <p className="text-red-600 font-bold">الترخيص غير صالح - يرجى التجديد</p>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
 
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                            <h2 className="text-2xl font-black mb-6 text-slate-800 border-b pb-4">البيانات والنسخ الاحتياطي</h2>
-                            
-                            {/* فترة النسخ الاحتياطي التلقائي */}
-                            <div className="mb-6 p-4 rounded-xl border border-blue-100" style={{background:'rgba(59,130,246,0.04)'}}>
-                                <h3 className="font-black text-slate-700 mb-3 flex items-center gap-2">
-                                    <i className="ph-fill ph-clock text-blue-500"></i>
-                                    فترة النسخ الاحتياطي التلقائي
-                                </h3>
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                    {[{v:30,l:'نص ساعة'},{v:60,l:'ساعة'},{v:1440,l:'يوم'}].map(opt=>(
-                                        <button key={opt.v} onClick={()=>{setBackupInterval(opt.v); localStorage.setItem('albarq_backup_interval', opt.v); notify(`تم تعيين النسخ التلقائي: ${opt.l}`);}}
-                                            className="px-4 py-2 rounded-xl font-bold text-sm transition-all"
-                                            style={backupInterval===opt.v
-                                                ? {background:'rgba(59,130,246,0.2)',border:'2px solid rgba(59,130,246,0.5)',color:'#1d4ed8'}
-                                                : {background:'#f1f5f9',border:'2px solid #e2e8f0',color:'#64748b'}}>
-                                            {opt.l} ({opt.v < 60 ? opt.v+' دقيقة' : opt.v === 60 ? 'ساعة' : 'يوم'})
-                                        </button>
-                                    ))}
+                        {/* ===== إعدادات المحل ===== */}
+                        <div className="rounded-2xl overflow-hidden" style={{background:'var(--card-bg-1)',border:'1px solid var(--card-border-1)'}}>
+                            <div className="p-5 border-b flex items-center gap-3" style={{borderColor:'rgba(255,255,255,0.08)'}}>
+                                <i className="ph-fill ph-storefront text-2xl" style={{color:'rgb(167,139,250)'}}></i>
+                                <div>
+                                    <h3 className="font-black text-base" style={{color:'var(--text-primary)'}}>إعدادات المحل</h3>
+                                    <p className="text-xs" style={{color:'var(--text-muted)'}}>اسم المحل والبيانات الأساسية</p>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <label className="input-label mb-0 text-slate-600">مخصص (بالدقائق):</label>
-                                    <input type="number" min="5" max="10080" 
-                                        className="input-field !w-36 text-center" 
-                                        value={backupInterval}
-                                        onChange={e=>{
-                                            const v=Math.max(5, Number(e.target.value)||30);
-                                            setBackupInterval(v);
-                                            localStorage.setItem('albarq_backup_interval', v);
-                                        }} />
-                                    <span className="text-sm font-bold text-slate-500">دقيقة</span>
-                                </div>
-                                <p className="text-xs text-slate-400 mt-2 font-bold">
-                                    <i className="ph ph-info mr-1"></i>
-                                    النسخ التلقائي الحالي: كل {backupInterval < 60 ? backupInterval+' دقيقة' : backupInterval === 60 ? 'ساعة' : Math.round(backupInterval/60)+' ساعة'}
-                                </p>
                             </div>
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                                <button onClick={() => exportData(false)} className="bg-blue-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-500/20">
-                                    <i className="ph-bold ph-download-simple"></i> 
-                                    حفظ نسخة احتياطية
-                                </button>
-                                <div className="relative">
-                                    <button onClick={() => fileInputRef.current.click()} className="w-full bg-white border-2 border-blue-200 text-blue-600 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-500/20">
-                                        <i className="ph-bold ph-upload-simple"></i> 
-                                        استعادة نسخة
+                            <div className="p-5">
+                                <ShopSettingsForm />
+                            </div>
+                        </div>
+
+                        {/* ===== الأمان والرموز ===== */}
+                        <div className="rounded-2xl overflow-hidden" style={{background:'var(--card-bg-1)',border:'1px solid var(--card-border-1)'}}>
+                            <div className="p-5 border-b flex items-center gap-3" style={{borderColor:'rgba(255,255,255,0.08)'}}>
+                                <i className="ph-fill ph-lock text-2xl" style={{color:'rgb(251,191,36)'}}></i>
+                                <div>
+                                    <h3 className="font-black text-base" style={{color:'var(--text-primary)'}}>الأمان والرموز</h3>
+                                    <p className="text-xs" style={{color:'var(--text-muted)'}}>رمز الدخول ورمز الإعدادات</p>
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                {/* رمز الدخول الحالي */}
+                                <div className="p-3 rounded-xl flex items-center justify-between" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}>
+                                    <span className="text-sm font-bold" style={{color:'var(--text-secondary)'}}>🔑 رمز الدخول الحالي</span>
+                                    <span className="font-mono font-black px-3 py-1 rounded-lg" style={{background:'rgba(99,165,255,0.15)',color:'rgb(147,197,253)'}}>{systemPassword}</span>
+                                </div>
+                                {/* تغيير رمز الدخول */}
+                                <div className="flex gap-3">
+                                    <div className="flex-1">
+                                        <label className="input-label">تغيير رمز الدخول</label>
+                                        <input type="text" className="input-field" placeholder="الرمز الجديد..." value={newPass} onChange={e=>setNewPass(e.target.value)} />
+                                    </div>
+                                    <div className="flex items-end">
+                                        <button onClick={()=>{if(newPass){setSystemPassword(newPass);PasswordManager.save(newPass);setNewPass('');notify('تم تغيير رمز الدخول ✓');}}}
+                                            className="px-5 py-3 rounded-xl font-black text-sm" style={{background:'rgba(52,211,153,0.2)',border:'1px solid rgba(52,211,153,0.4)',color:'rgb(110,231,183)'}}>
+                                            حفظ
+                                        </button>
+                                    </div>
+                                </div>
+                                {/* رمز الإعدادات */}
+                                <div className="p-3 rounded-xl flex items-center justify-between" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}>
+                                    <span className="text-sm font-bold" style={{color:'var(--text-secondary)'}}>⚙️ رمز الإعدادات الحالي</span>
+                                    <span className="font-mono font-black text-xs px-3 py-1 rounded-lg" style={{background:'rgba(251,191,36,0.15)',color:'rgb(253,230,138)'}}>{settingsCode}</span>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="flex-1">
+                                        <label className="input-label">تغيير رمز الإعدادات</label>
+                                        <input type="text" className="input-field font-mono" placeholder="الرمز الجديد..." value={newCode} onChange={e=>setNewCode(e.target.value)} />
+                                    </div>
+                                    <div className="flex items-end">
+                                        <button onClick={()=>{if(newCode){setSettingsCode(newCode);SettingsLockManager.save(newCode);setNewCode('');notify('تم تغيير رمز الإعدادات ✓');}}}
+                                            className="px-5 py-3 rounded-xl font-black text-sm" style={{background:'rgba(251,191,36,0.2)',border:'1px solid rgba(251,191,36,0.4)',color:'rgb(253,230,138)'}}>
+                                            حفظ
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="p-3 rounded-xl text-xs font-bold" style={{background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.2)',color:'rgb(253,230,138)'}}>
+                                    <i className="ph ph-info mr-1"></i>
+                                    رمز الإعدادات يُستخدم لفتح قسم الإعدادات ويمكن استخدامه للدخول للنظام
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ===== النسخ الاحتياطي ===== */}
+                        <div className="rounded-2xl overflow-hidden" style={{background:'var(--card-bg-1)',border:'1px solid var(--card-border-1)'}}>
+                            <div className="p-5 border-b flex items-center gap-3" style={{borderColor:'rgba(255,255,255,0.08)'}}>
+                                <i className="ph-fill ph-cloud-arrow-up text-2xl" style={{color:'rgb(52,211,153)'}}></i>
+                                <div>
+                                    <h3 className="font-black text-base" style={{color:'var(--text-primary)'}}>البيانات والنسخ الاحتياطي</h3>
+                                    <p className="text-xs" style={{color:'var(--text-muted)'}}>حفظ واستعادة البيانات</p>
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                {/* فترة النسخ التلقائي */}
+                                <div className="p-4 rounded-xl" style={{background:'rgba(52,211,153,0.06)',border:'1px solid rgba(52,211,153,0.15)'}}>
+                                    <p className="text-xs font-black mb-3" style={{color:'rgb(110,231,183)'}}>⏱ النسخ الاحتياطي التلقائي</p>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {[{v:30,l:'30 دقيقة'},{v:60,l:'ساعة'},{v:1440,l:'يوم'}].map(opt=>(
+                                            <button key={opt.v} onClick={()=>{setBackupInterval(opt.v);localStorage.setItem('albarq_backup_interval',opt.v);notify('تم تعيين النسخ: '+opt.l);}}
+                                                className="px-3 py-1.5 rounded-lg font-bold text-xs transition-all"
+                                                style={backupInterval===opt.v?{background:'rgba(52,211,153,0.25)',border:'1px solid rgba(52,211,153,0.5)',color:'rgb(110,231,183)'}:{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',color:'var(--text-muted)'}}>
+                                                {opt.l}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs" style={{color:'var(--text-muted)'}}>الحالي: كل {backupInterval < 60 ? backupInterval+' دقيقة' : backupInterval===60?'ساعة':Math.round(backupInterval/60)+' ساعة'}</p>
+                                </div>
+                                {/* أزرار النسخ */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button onClick={()=>exportData(false)} className="py-3 rounded-xl font-black text-sm flex items-center justify-center gap-2"
+                                        style={{background:'rgba(99,165,255,0.2)',border:'1px solid rgba(99,165,255,0.4)',color:'rgb(147,197,253)'}}>
+                                        <i className="ph-bold ph-download-simple"></i> حفظ نسخة
+                                    </button>
+                                    <button onClick={()=>fileInputRef.current.click()} className="py-3 rounded-xl font-black text-sm flex items-center justify-center gap-2"
+                                        style={{background:'rgba(167,139,250,0.2)',border:'1px solid rgba(167,139,250,0.4)',color:'rgb(196,181,253)'}}>
+                                        <i className="ph-bold ph-upload-simple"></i> استعادة نسخة
                                     </button>
                                     <input type="file" ref={fileInputRef} onChange={importData} accept=".json" className="hidden" />
                                 </div>
+                                {/* استعادة النسخة التلقائية */}
+                                {autoBackupTime && (
+                                    <button onClick={()=>{
+                                        if(!confirm('سيتم استبدال البيانات الحالية. هل تريد الاستمرار؟')) return;
+                                        try {
+                                            const parsed = JSON.parse(localStorage.getItem('barq_auto_backup'));
+                                            if(parsed.inventory) setInventory(parsed.inventory);
+                                            if(parsed.customers) setCustomers(parsed.customers);
+                                            if(parsed.transactions) setTransactions(parsed.transactions);
+                                            if(parsed.expenses) setExpenses(parsed.expenses);
+                                            if(parsed.purchaseInvoices) setPurchaseInvoices(parsed.purchaseInvoices);
+                                            notify('✅ تم استعادة النسخة الاحتياطية','success');
+                                        } catch(e){notify('❌ فشل في استعادة النسخة','error');}
+                                    }} className="w-full py-2.5 rounded-xl font-black text-sm"
+                                        style={{background:'rgba(251,191,36,0.1)',border:'1px solid rgba(251,191,36,0.25)',color:'rgb(253,230,138)'}}>
+                                        <i className="ph ph-clock-clockwise mr-1"></i> استعادة آخر نسخة ({autoBackupTime})
+                                    </button>
+                                )}
                             </div>
                         </div>
 
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-violet-100">
-                            <h2 className="text-2xl font-black mb-2 text-slate-800 border-b pb-4 flex items-center gap-2">
-                                <i className="ph-bold ph-package text-violet-600"></i> إدارة أسماء الأصناف
-                            </h2>
-                            <p className="text-sm text-slate-500 mb-5">تنزيل قائمة أسماء الأصناف كملف TXT، أو استرداد أصناف من ملف سابق لإضافتها للمخزن.</p>
-                            <div className="grid grid-cols-2 gap-4">
-                                <button onClick={exportInventoryNames} className="bg-violet-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-violet-700 shadow-lg">
-                                    <i className="ph-bold ph-download-simple"></i>
-                                    تنزيل أسماء الأصناف ({inventory.length} صنف)
-                                </button>
-                                <div className="relative">
-                                    <button onClick={() => inventoryNamesImportRef.current.click()} className="w-full bg-white border-2 border-violet-200 text-violet-600 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-violet-500/20">
-                                        <i className="ph-bold ph-upload-simple"></i>
-                                        استرداد أصناف من ملف TXT
+                        {/* ===== إدارة الأصناف ===== */}
+                        <div className="rounded-2xl overflow-hidden" style={{background:'var(--card-bg-1)',border:'1px solid var(--card-border-1)'}}>
+                            <div className="p-5 border-b flex items-center gap-3" style={{borderColor:'rgba(255,255,255,0.08)'}}>
+                                <i className="ph-fill ph-package text-2xl" style={{color:'rgb(167,139,250)'}}></i>
+                                <div>
+                                    <h3 className="font-black text-base" style={{color:'var(--text-primary)'}}>إدارة أسماء الأصناف</h3>
+                                    <p className="text-xs" style={{color:'var(--text-muted)'}}>تصدير واستيراد قائمة الأصناف</p>
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button onClick={exportInventoryNames} className="py-3 rounded-xl font-black text-sm flex items-center justify-center gap-2"
+                                        style={{background:'rgba(167,139,250,0.2)',border:'1px solid rgba(167,139,250,0.4)',color:'rgb(196,181,253)'}}>
+                                        <i className="ph-bold ph-download-simple"></i> تنزيل ({inventory.length} صنف)
+                                    </button>
+                                    <button onClick={()=>inventoryNamesImportRef.current.click()} className="py-3 rounded-xl font-black text-sm flex items-center justify-center gap-2"
+                                        style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',color:'var(--text-secondary)'}}>
+                                        <i className="ph-bold ph-upload-simple"></i> استيراد TXT
                                     </button>
                                     <input type="file" ref={inventoryNamesImportRef} onChange={importInventoryNames} accept=".txt" className="hidden" />
                                 </div>
-                            </div>
-                            <div className="mt-4 bg-violet-50 p-4 rounded-xl border border-violet-100 text-xs text-violet-700 font-bold">
-                                <i className="ph-bold ph-info mr-1"></i>
-                                ملف TXT: كل سطر = اسم صنف (يمكن إضافة اسم الشركة بعد Tab). الأصناف المكررة لن تُضاف.
-                            </div>
-                        </div>
-                        
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                            <h2 className="text-2xl font-black mb-6 text-slate-800 border-b pb-4">إعدادات النظام</h2>
-                            {/* نستخدم state محلية مؤقتة لتجنب إعادة رسم الصفحة أثناء الكتابة */}
-                            {(() => {
-                                const [localSettings, setLocalSettings] = React.useState({...settings});
-                                const [saved, setSaved] = React.useState(false);
-                                const handleSave = () => {
-                                    setSettings(localSettings);
-                                    if (window.firebaseDB && currentBranch?.id) {
-                                        CloudManager.saveCollection(currentBranch.id, 'settings', [{...localSettings, id:'main', _branchId: currentBranch.id}])
-                                            .catch(e => console.error('saveSettings:', e));
-                                    }
-                                    setSaved(true);
-                                    setTimeout(() => setSaved(false), 2000);
-                                    notify("✅ تم حفظ الإعدادات");
-                                };
-                                return (
-                                    <div className="space-y-4">
-                                        <div><label className="input-label">اسم المحل</label><input className="input-field" value={localSettings.shopName||''} onChange={e => setLocalSettings({...localSettings, shopName: e.target.value})} /></div>
-                                        <div><label className="input-label">وصف المحل</label><input className="input-field" value={localSettings.shopDesc||''} onChange={e => setLocalSettings({...localSettings, shopDesc: e.target.value})} /></div>
-                                        <div><label className="input-label">الرقم الضريبي</label><input className="input-field" value={localSettings.taxNumber||''} onChange={e => setLocalSettings({...localSettings, taxNumber: e.target.value})} /></div>
-                                        <div><label className="input-label">الهاتف</label><input className="input-field" value={localSettings.phone||''} onChange={e => setLocalSettings({...localSettings, phone: e.target.value})} /></div>
-                                        <div><label className="input-label">العنوان</label><input className="input-field" value={localSettings.address||''} onChange={e => setLocalSettings({...localSettings, address: e.target.value})} /></div>
-                                        <div><label className="input-label">ملاحظات أسفل الفاتورة</label><textarea className="input-field h-24" value={localSettings.footerNote||''} onChange={e => setLocalSettings({...localSettings, footerNote: e.target.value})}></textarea></div>
-                                        <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border mt-2">
-                                            <input type="checkbox" id="showQR" checked={!!localSettings.showQR} onChange={e => setLocalSettings({...localSettings, showQR: e.target.checked})} className="w-5 h-5 accent-blue-600 cursor-pointer"/>
-                                            <label htmlFor="showQR" className="font-bold text-slate-700 cursor-pointer">طباعة رمز الاستجابة السريع (QR Code) على الفاتورة</label>
-                                        </div>
-                                        <button onClick={handleSave}
-                                            className="w-full py-3 rounded-xl font-black flex items-center justify-center gap-2 transition-all"
-                                            style={{background: saved ? 'rgba(52,211,153,0.2)' : 'rgba(15,23,42,0.9)', border: saved ? '1px solid rgba(52,211,153,0.5)' : 'none', color: saved ? 'rgb(52,211,153)' : 'white'}}>
-                                            <i className={`ph-bold ${saved ? 'ph-check-circle' : 'ph-floppy-disk'}`}></i>
-                                            {saved ? 'تم الحفظ ✓' : 'حفظ الإعدادات'}
-                                        </button>
-                                    </div>
-                                );
-                            })()}
-                        </div>
-                         
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                            <h2 className="text-2xl font-black mb-6 text-slate-800 border-b pb-4">الأمان والرموز</h2>
-                            
-                            <div className="space-y-6">
-                                <div className="bg-slate-50 p-4 rounded-xl border">
-                                    <p className="text-sm text-slate-600 mb-2">
-                                        <i className="ph-bold ph-key mr-1"></i>
-                                        كلمة المرور الحالية: <span className="font-mono font-bold">{systemPassword}</span>
-                                    </p>
-                                </div>
-
-                                <div className="flex gap-4 items-end">
-                                    <div className="flex-1">
-                                        <label className="input-label">تغيير رمز الدخول</label>
-                                        <input 
-                                            type="text" 
-                                            className="input-field" 
-                                            placeholder="الرمز الجديد" 
-                                            value={newPass} 
-                                            onChange={e => setNewPass(e.target.value)} 
-                                        />
-                                    </div>
-                                    <button 
-                                        onClick={() => { 
-                                            if(newPass) { 
-                                                setSystemPassword(newPass); 
-                                                PasswordManager.save(newPass);
-                                                setNewPass(""); 
-                                                notify("تم تغيير رمز الدخول بنجاح"); 
-                                            } 
-                                        }} 
-                                        className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold h-[50px]"
-                                    >
-                                        تحديث
-                                    </button>
-                                </div>
-
-                                <div className="flex gap-4 items-end">
-                                    <div className="flex-1">
-                                        <label className="input-label">رمز الإعدادات (للدخول بدون كلمة المرور)</label>
-                                        <input 
-                                            type="text" 
-                                            className="input-field font-mono" 
-                                            value={newSettingsCode} 
-                                            onChange={e => setNewSettingsCode(e.target.value)} 
-                                            placeholder={settingsCode} 
-                                        />
-                                    </div>
-                                    <button 
-                                        onClick={() => { 
-                                            if(newSettingsCode) { 
-                                                setSettingsCode(newSettingsCode); 
-                                                setNewSettingsCode(""); 
-                                                notify("تم تغيير رمز الإعدادات بنجاح"); 
-                                            } 
-                                        }} 
-                                        className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold h-[50px]"
-                                    >
-                                        تحديث
-                                    </button>
-                                </div>
-
-                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
-                                    <p className="text-sm text-amber-800 font-bold">
-                                        <i className="ph-bold ph-info mr-1"></i>
-                                        رمز الإعدادات الحالي: <span className="font-mono bg-white px-2 py-1 rounded">{settingsCode}</span>
-                                    </p>
-                                    <p className="text-xs text-amber-600 mt-1">يمكن استخدام هذا الرمز للدخول للنظام بدلاً من كلمة المرور العادية</p>
-                                </div>
-
-                                {/* ☁️ قسم Firebase */}
-                                <div className="mt-6 rounded-2xl overflow-hidden" style={{border:'1px solid rgba(255,165,0,0.3)'}}>
-                                    <div className="p-4 flex items-center justify-between" style={{background:'rgba(255,165,0,0.1)',borderBottom:'1px solid rgba(255,165,0,0.2)'}}>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-2xl">☁️</span>
-                                            <div>
-                                                <h4 className="font-black text-sm" style={{color:'rgb(253,230,138)'}}>مزامنة Firebase السحابية</h4>
-                                                <p className="text-xs" style={{color:'rgba(253,230,138,0.6)'}}>تزامن بياناتك عبر جميع الأجهزة</p>
-                                            </div>
-                                        </div>
-                                        <div className={`cloud-status ${cloudStatus}`}>
-                                            <div className="cloud-dot"></div>
-                                            {cloudStatus === 'connected' ? 'متصل' : cloudStatus === 'syncing' ? 'مزامنة' : 'غير متصل'}
-                                        </div>
-                                    </div>
-                                    <div className="p-4 space-y-3" style={{background:'rgba(255,165,0,0.05)'}}>
-                                        <div className="grid grid-cols-2 gap-3 text-xs text-center">
-                                            <div className="p-3 rounded-xl" style={{background:'rgba(52,211,153,0.1)',border:'1px solid rgba(52,211,153,0.2)'}}>
-                                                <p style={{color:'rgb(110,231,183)'}} className="font-black text-lg">{inventory.length}</p>
-                                                <p style={{color:'rgba(110,231,183,0.7)'}}>صنف في المخزن</p>
-                                            </div>
-                                            <div className="p-3 rounded-xl" style={{background:'rgba(99,165,255,0.1)',border:'1px solid rgba(99,165,255,0.2)'}}>
-                                                <p style={{color:'rgb(147,197,253)'}} className="font-black text-lg">{transactions.length}</p>
-                                                <p style={{color:'rgba(147,197,253,0.7)'}}>معاملة مسجلة</p>
-                                            </div>
-                                            <div className="p-3 rounded-xl" style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.2)'}}>
-                                                <p style={{color:'rgb(196,181,253)'}} className="font-black text-lg">{customers.length}</p>
-                                                <p style={{color:'rgba(196,181,253,0.7)'}}>عميل</p>
-                                            </div>
-                                            <div className="p-3 rounded-xl" style={{background:'rgba(251,113,133,0.1)',border:'1px solid rgba(251,113,133,0.2)'}}>
-                                                <p style={{color:'rgb(252,165,165)'}} className="font-black text-lg">{expenses.length}</p>
-                                                <p style={{color:'rgba(252,165,165,0.7)'}}>مصروف</p>
-                                            </div>
-                                        </div>
-                                        {/* زر إعداد Firebase */}
-                                        <button onClick={() => setShowFirebaseSetup(true)} className="w-full py-2.5 rounded-xl font-black text-sm" style={{background:'rgba(255,165,0,0.2)',border:'1px solid rgba(255,165,0,0.35)',color:'rgb(253,230,138)'}}>
-                                            <i className="ph ph-gear mr-1"></i> إعداد Firebase
-                                        </button>
-                                        {/* زر رفع للسحابة */}
-                                        <button onClick={loadFromCloud} disabled={!window.firebaseDB} className="w-full py-2.5 rounded-xl font-black text-sm disabled:opacity-40" style={{background:'rgba(52,211,153,0.2)',border:'1px solid rgba(52,211,153,0.35)',color:'rgb(110,231,183)'}}>
-                                            <i className="ph ph-cloud-arrow-up mr-1"></i> ☁️ رفع البيانات للسحابة
-                                        </button>
-                                        {/* زر تحديث البيانات */}
-                                        <button onClick={downloadFromCloud} disabled={!window.firebaseDB} className="w-full py-2.5 rounded-xl font-black text-sm disabled:opacity-40" style={{background:'rgba(99,165,255,0.15)',border:'1px solid rgba(99,165,255,0.3)',color:'rgb(147,197,253)'}}>
-                                            <i className="ph ph-arrows-clockwise mr-1"></i> 🔄 تحديث وعرض البيانات
-                                        </button>
-                                        {/* زر فحص الاتصال */}
-                                        <button onClick={checkConnection} className="w-full py-2.5 rounded-xl font-black text-sm" style={{background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.3)',color:'rgb(253,230,138)'}}>
-                                            <i className="ph ph-wifi mr-1"></i> 📡 فحص الاتصال
-                                        </button>
-                                        {/* استعادة النسخة الاحتياطية التلقائية */}
-                                        {localStorage.getItem('barq_auto_backup') && (
-                                            <button onClick={() => {
-                                                const backupTime = localStorage.getItem('barq_auto_backup_time') || 'غير محدد';
-                                                if (!confirm(`استعادة النسخة الاحتياطية التلقائية المحفوظة في:\n${backupTime}\n\nسيتم استبدال البيانات الحالية. هل تريد الاستمرار؟`)) return;
-                                                try {
-                                                    const parsed = JSON.parse(localStorage.getItem('barq_auto_backup'));
-                                                    if (parsed.inventory) setInventory(parsed.inventory);
-                                                    if (parsed.customers) setCustomers(parsed.customers);
-                                                    if (parsed.transactions) setTransactions(parsed.transactions);
-                                                    if (parsed.expenses) setExpenses(parsed.expenses);
-                                                    if (parsed.purchaseInvoices) setPurchaseInvoices(parsed.purchaseInvoices);
-                                                    notify('✅ تم استعادة النسخة الاحتياطية التلقائية', 'success');
-                                                } catch(e) { notify('❌ فشل في استعادة النسخة', 'error'); }
-                                            }} className="w-full py-2.5 rounded-xl font-black text-sm" style={{background:'rgba(99,165,255,0.1)',border:'1px solid rgba(99,165,255,0.25)',color:'rgb(147,197,253)'}}>
-                                                <i className="ph ph-clock-clockwise mr-1"></i> 🕐 استعادة آخر نسخة احتياطية ({localStorage.getItem('barq_auto_backup_time')||'—'})
-                                            </button>
-                                        )}
-                                        {/* زر إعادة الضبط */}
-                                        <button onClick={resetSystemData} className="w-full py-2.5 rounded-xl font-black text-sm" style={{background:'rgba(239,68,68,0.12)',border:'1px solid rgba(239,68,68,0.3)',color:'rgb(252,165,165)'}}>
-                                            <i className="ph ph-trash mr-1"></i> 🗑️ إعادة ضبط وحذف كل البيانات
-                                        </button>
-                                        {/* حالة الاتصال */}
-                                        <p className="text-center text-xs font-bold" style={{color:cloudStatus==='connected'?'rgb(110,231,183)':cloudStatus==='syncing'?'rgb(253,230,138)':'rgb(252,165,165)'}}>
-                                            {cloudStatus==='connected'?'🟢 متصل':cloudStatus==='syncing'?'🟡 يتزامن...':'🔴 غير متصل'}
-                                        </p>
-                                    </div>
-                                </div>
+                                <p className="text-xs font-bold p-3 rounded-xl" style={{background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.15)',color:'rgb(196,181,253)'}}>
+                                    <i className="ph ph-info mr-1"></i>
+                                    كل سطر = اسم صنف. يمكن إضافة اسم الشركة بعد Tab.
+                                </p>
                             </div>
                         </div>
+
+                        {/* ===== Firebase السحابي ===== */}
+                        <div className="rounded-2xl overflow-hidden" style={{background:'var(--card-bg-1)',border:'1px solid rgba(255,165,0,0.25)'}}>
+                            <div className="p-5 border-b flex items-center justify-between" style={{borderColor:'rgba(255,165,0,0.2)'}}>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">☁️</span>
+                                    <div>
+                                        <h3 className="font-black text-base" style={{color:'rgb(253,230,138)'}}>Firebase السحابي</h3>
+                                        <p className="text-xs" style={{color:'rgba(253,230,138,0.6)'}}>مزامنة البيانات عبر الأجهزة</p>
+                                    </div>
+                                </div>
+                                <div className={'cloud-status '+cloudStatus}>
+                                    <div className="cloud-dot"></div>
+                                    {cloudStatus==='connected'?'متصل':cloudStatus==='syncing'?'مزامنة':'غير متصل'}
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-3">
+                                {/* إحصاءات */}
+                                <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                                    {[
+                                        {v:inventory.length,l:'صنف',c:'rgba(52,211,153,0.15)',tc:'rgb(110,231,183)'},
+                                        {v:transactions.length,l:'معاملة',c:'rgba(99,165,255,0.15)',tc:'rgb(147,197,253)'},
+                                        {v:customers.length,l:'عميل',c:'rgba(167,139,250,0.15)',tc:'rgb(196,181,253)'},
+                                        {v:expenses.length,l:'مصروف',c:'rgba(251,113,133,0.15)',tc:'rgb(252,165,165)'},
+                                    ].map(({v,l,c,tc})=>(
+                                        <div key={l} className="p-2 rounded-xl" style={{background:c}}>
+                                            <p className="font-black text-base" style={{color:tc}}>{v}</p>
+                                            <p style={{color:tc,opacity:.7}}>{l}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* أزرار Firebase */}
+                                <button onClick={()=>setShowFirebaseSetup(true)} className="w-full py-2.5 rounded-xl font-black text-sm"
+                                    style={{background:'rgba(255,165,0,0.15)',border:'1px solid rgba(255,165,0,0.3)',color:'rgb(253,230,138)'}}>
+                                    <i className="ph ph-gear mr-1"></i> إعداد Firebase
+                                </button>
+                                <button onClick={loadFromCloud} disabled={!window.firebaseDB} className="w-full py-2.5 rounded-xl font-black text-sm disabled:opacity-40"
+                                    style={{background:'rgba(52,211,153,0.15)',border:'1px solid rgba(52,211,153,0.3)',color:'rgb(110,231,183)'}}>
+                                    <i className="ph ph-cloud-arrow-up mr-1"></i> رفع البيانات للسحابة
+                                </button>
+                                <button onClick={downloadFromCloud} disabled={!window.firebaseDB} className="w-full py-2.5 rounded-xl font-black text-sm disabled:opacity-40"
+                                    style={{background:'rgba(99,165,255,0.15)',border:'1px solid rgba(99,165,255,0.3)',color:'rgb(147,197,253)'}}>
+                                    <i className="ph ph-arrows-clockwise mr-1"></i> تحديث من السحابة
+                                </button>
+                                <button onClick={checkConnection} className="w-full py-2.5 rounded-xl font-black text-sm"
+                                    style={{background:'rgba(251,191,36,0.1)',border:'1px solid rgba(251,191,36,0.25)',color:'rgb(253,230,138)'}}>
+                                    <i className="ph ph-wifi mr-1"></i> فحص الاتصال
+                                </button>
+                                {/* خطر: إعادة الضبط */}
+                                <button onClick={resetSystemData} className="w-full py-2.5 rounded-xl font-black text-sm"
+                                    style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.25)',color:'rgb(252,165,165)'}}>
+                                    <i className="ph ph-trash mr-1"></i> إعادة ضبط وحذف كل البيانات
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 );
             };
@@ -7234,15 +7244,6 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
 
             return (
                 <div className="flex flex-col md:flex-row font-cairo" style={{height:'100dvh',height:'100vh',overflow:'hidden'}}>
-                    <style>{`
-                        @media (max-width: 768px) {
-                            #main-content-area {
-                                height: calc(100vh - 68px) !important;
-                                height: calc(100dvh - 68px) !important;
-                                padding-bottom: 24px !important;
-                            }
-                        }
-                    `}</style>
                     <div id="print-area">
                         <PrintTemplate data={printData} settings={settings} type={printType} reportStats={reportStatsForPrint} />
                     </div>
@@ -7489,6 +7490,29 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                         <option value="card">شبكة (Card)</option>
                                     </select>
                                 </div>
+                                {/* ===== إخفاء عن المشاهد ===== */}
+                                <div className="rounded-xl p-3 flex items-center justify-between"
+                                    style={{background: modals.editExpense.viewerHidden ? 'rgba(234,179,8,0.1)' : 'rgba(0,0,0,0.04)', border: `1px solid ${modals.editExpense.viewerHidden ? 'rgba(234,179,8,0.35)' : 'rgba(0,0,0,0.08)'}`}}>
+                                    <div>
+                                        <p className="text-sm font-black" style={{color: modals.editExpense.viewerHidden ? '#a16207' : 'var(--text-primary)'}}>
+                                            {modals.editExpense.viewerHidden ? '🙈 مخفي عن المشاهد' : '👁️ ظاهر للمشاهد'}
+                                        </p>
+                                        <p className="text-xs mt-0.5" style={{color:'var(--text-muted)'}}>
+                                            {modals.editExpense.viewerHidden ? 'لن يظهر هذا المصروف في تقارير المشاهد' : 'يظهر هذا المصروف لجميع المشاهدين'}
+                                        </p>
+                                    </div>
+                                    <button id="ex_viewerHidden_btn"
+                                        onClick={() => {
+                                            const newVal = !modals.editExpense.viewerHidden;
+                                            setModals({...modals, editExpense: {...modals.editExpense, viewerHidden: newVal}});
+                                        }}
+                                        className="px-4 py-2 rounded-xl text-xs font-black transition-all"
+                                        style={modals.editExpense.viewerHidden
+                                            ? {background:'rgba(234,179,8,0.2)',color:'#a16207',border:'1.5px solid rgba(234,179,8,0.45)'}
+                                            : {background:'rgba(107,114,128,0.1)',color:'#6b7280',border:'1.5px solid rgba(107,114,128,0.2)'}}>
+                                        {modals.editExpense.viewerHidden ? 'إظهار للمشاهد' : 'إخفاء عن المشاهد'}
+                                    </button>
+                                </div>
                                 <button onClick={() => {
                                     const updated = {
                                         ...modals.editExpense,
@@ -7583,13 +7607,25 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                         }}>
                             <div className="text-center space-y-6 py-4">
                                 <div className="text-6xl mb-4">⚙️</div>
-                                <p className="text-slate-600 font-bold">هذا القسم محمي برمز خاص</p>
+                                <p className="font-bold" style={{color:'var(--text-secondary)'}}>هذا القسم محمي برمز خاص</p>
                                 <input 
                                     type="password" 
                                     id="settingsLockInput"
                                     placeholder="أدخل رمز الإعدادات"
-                                    className="w-full p-4 rounded-xl border-2 border-slate-200 text-center text-xl font-bold outline-none focus:border-blue-500"
+                                    className="input-field text-center text-xl font-bold"
                                     autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            const input = document.getElementById('settingsLockInput').value;
+                                            if (SettingsLockManager.verify(input)) {
+                                                setShowSettingsLockModal(false);
+                                                setActiveTab('settings');
+                                                notify("تم الدخول للإعدادات");
+                                            } else {
+                                                notify("رمز الإعدادات غير صحيح!", "error");
+                                            }
+                                        }
+                                    }}
                                 />
                                 <button 
                                     onClick={() => {
@@ -7602,10 +7638,13 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                             notify("رمز الإعدادات غير صحيح!", "error");
                                         }
                                     }}
-                                    className="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-lg"
+                                    className="w-full py-4 rounded-xl font-black text-lg"
+                                    style={{background:'linear-gradient(135deg,rgba(59,130,246,0.7),rgba(99,102,241,0.6))',border:'1px solid rgba(99,165,255,0.4)',color:'white'}}
                                 >
+                                    <i className="ph ph-lock-open mr-2"></i>
                                     فتح الإعدادات
                                 </button>
+                               
                             </div>
                         </Modal>
                     )}

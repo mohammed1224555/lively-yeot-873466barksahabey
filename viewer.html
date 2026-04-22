@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام البرق — مشاهدة فقط 👁️</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👁️</text></svg>">
+    <meta name="theme-color" content="#050d1a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Firebase SDK v10 -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, deleteDoc, writeBatch, addDoc }
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+               createUserWithEmailAndPassword, sendPasswordResetEmail }
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      try {
+        const app  = initializeApp({
+          apiKey:"AIzaSyClliyCsXUV0sq89y6BfoYNUWCMBB8aFH8",
+          authDomain:"bark-44676.firebaseapp.com",
+          projectId:"bark-44676",
+          storageBucket:"bark-44676.firebasestorage.app",
+          messagingSenderId:"310662661096",
+          appId:"1:310662661096:web:668be5d0fe292075601a5d"
+        });
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        window.firebaseDB   = db;
+        window.firebaseAuth = auth;
+        window.firebaseReady = true;
+        window.firebaseModules = {
+          onAuthStateChanged, signInWithEmailAndPassword, signOut,
+          createUserWithEmailAndPassword, sendPasswordResetEmail,
+          collection, doc, setDoc, getDoc, getDocs,
+          onSnapshot, deleteDoc, writeBatch, addDoc
+        };
+        window.dispatchEvent(new Event('firebaseReady'));
+      } catch(e) {
+        console.error('Firebase error:', e);
+        window.firebaseReady = false;
+        window.dispatchEvent(new Event('firebaseReady'));
+      }
+    </script>
+
+    <style>
+        :root {
+            --glass-bg: rgba(255,255,255,0.10);
+            --glass-border: rgba(255,255,255,0.18);
+            --accent-blue: rgba(99,165,255,1);
+            --accent-emerald: rgba(52,211,153,1);
+            --accent-violet: rgba(167,139,250,1);
+            --accent-amber: rgba(251,191,36,1);
+            --accent-rose: rgba(251,113,133,1);
+            --text-primary: rgba(255,255,255,0.95);
+            --text-secondary: rgba(255,255,255,0.65);
+            --text-muted: rgba(255,255,255,0.38);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; font-family: 'Cairo', sans-serif; }
+
+        body {
+            background: #050d1a;
+            color: var(--text-primary);
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: -1;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59,130,246,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 90%, rgba(99,102,241,0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 50% 50%, rgba(16,185,129,0.05) 0%, transparent 70%);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, rgba(10,25,60,0.88) 0%, rgba(8,20,50,0.95) 100%);
+            backdrop-filter: blur(40px);
+            border-left: 1px solid rgba(255,255,255,0.10);
+            box-shadow: 4px 0 40px rgba(0,0,0,0.4);
+        }
+
+        /* Nav item */
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 14px; border-radius: 14px;
+            font-weight: 700; font-size: 0.875rem;
+            cursor: pointer; transition: all 0.22s;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.07); color: var(--text-primary); transform: translateX(-2px); }
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(59,130,246,0.42) 0%, rgba(99,102,241,0.32) 100%);
+            border-color: rgba(99,165,255,0.32);
+            box-shadow: 0 4px 18px rgba(59,130,246,0.22);
+            color: white;
+        }
+        .nav-item.active::after {
+            content: ''; position: absolute; right: 0; top: 20%; height: 60%;
+            width: 3px; background: linear-gradient(180deg, var(--accent-blue), rgba(99,102,241,0.8));
+            border-radius: 4px 0 0 4px;
+        }
+        .nav-item { position: relative; overflow: hidden; }
+
+        /* Glass card */
+        .glass-card {
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.14);
+        }
+
+        /* Stat card */
+        .stat-card {
+            padding: 1.25rem 1.4rem; border-radius: 18px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+        }
+        .stat-card .lbl { font-size: 0.68rem; font-weight: 700; opacity: 0.62; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.28rem; }
+        .stat-card .val { font-size: 1.65rem; font-weight: 900; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: rgba(255,255,255,0.05); }
+        th { color: var(--text-muted) !important; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.75rem 1rem; font-weight: 700; }
+        td { padding: 0.8rem 1rem; color: var(--text-secondary); border-top: 1px solid rgba(255,255,255,0.04); font-size: 0.82rem; }
+        tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+        /* Input */
+        .input-field {
+            width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+            color: var(--text-primary); padding: 0.6rem 0.9rem; border-radius: 12px;
+            font-weight: 600; font-family: 'Cairo', sans-serif; outline: none;
+            transition: all 0.2s; font-size: 0.82rem;
+        }
+        .input-field:focus { border-color: rgba(99,165,255,0.55); background: rgba(255,255,255,0.10); box-shadow: 0 0 0 3px rgba(99,165,255,0.13); }
+        .input-field option { background: #0f1e3d; color: white; }
+
+        /* Badge */
+        .badge { padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.62rem; font-weight: 900; }
+        .badge-green { background: rgba(52,211,153,0.15); color: rgb(110,231,183); border: 1px solid rgba(52,211,153,0.25); }
+        .badge-blue  { background: rgba(99,165,255,0.15); color: rgb(147,197,253); border: 1px solid rgba(99,165,255,0.25); }
+        .badge-red   { background: rgba(251,113,133,0.15); color: rgb(252,165,165); border: 1px solid rgba(251,113,133,0.25); }
+        .badge-amber { background: rgba(251,191,36,0.15); color: rgb(253,230,138); border: 1px solid rgba(251,191,36,0.25); }
+        .badge-violet{ background: rgba(167,139,250,0.15); color: rgb(196,181,253); border: 1px solid rgba(167,139,250,0.25); }
+
+        /* Chip filter */
+        .chip { padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.18s; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); color: var(--text-muted); }
+        .chip:hover { background: rgba(255,255,255,0.10); color: var(--text-secondary); }
+        .chip.active { background: rgba(59,130,246,0.35); border-color: rgba(99,165,255,0.45); color: white; }
+
+        /* Cloud status */
+        .cloud-status { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; }
+        .cloud-status.connected { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.35); color: rgb(110,231,183); }
+        .cloud-status.disconnected { background: rgba(251,113,133,0.15); border: 1px solid rgba(251,113,133,0.35); color: rgb(252,165,165); }
+        .cloud-status.syncing { background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.35); color: rgb(253,230,138); }
+        .cloud-dot { width: 6px; height: 6px; border-radius: 50%; animation: blink 1.5s infinite; }
+        .cloud-status.connected .cloud-dot { background: rgb(52,211,153); }
+        .cloud-status.disconnected .cloud-dot { background: rgb(251,113,133); animation: none; }
+        .cloud-status.syncing .cloud-dot { background: rgb(251,191,36); }
+
+        /* Login */
+        .login-glass {
+            background: rgba(255,255,255,0.09);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 4px; }
+
+        /* Notification */
+        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; background: rgba(15,30,80,0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 14px; font-weight: 700; font-size: 0.82rem; color: white; animation: fadeIn 0.25s ease-out; }
+
+        /* Month accordion */
+        .month-acc { border-radius: 16px; overflow: hidden; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.07); transition: all 0.2s; }
+        .month-acc.open { border-color: rgba(99,165,255,0.28); background: rgba(99,165,255,0.05); }
+
+        /* Viewer badge */
+        .viewer-badge { background: rgba(167,139,250,0.2); border: 1px solid rgba(167,139,250,0.4); color: rgb(196,181,253); padding: 3px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; }
+
+        /* Readonly banner */
+        .readonly-banner {
+            background: rgba(167,139,250,0.12);
+            border: 1px solid rgba(167,139,250,0.25);
+            color: rgb(196,181,253);
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Progress bar */
+        .progress-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+        @keyframes slideUp { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }
+        .animate-slide { animation: slideUp 0.3s ease-out; }
+
+        /* Mobile bottom nav */
+        @media (max-width: 768px) {
+            html, body { overflow: hidden; position: fixed; width: 100%; height: 100%; }
+            .sidebar {
+                position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
+                top: auto !important; width: 100% !important; height: 64px !important;
+                flex-direction: row !important; padding: 0 !important;
+                z-index: 1000 !important; border-left: none !important;
+                border-top: 1px solid rgba(255,255,255,0.10) !important;
+                overflow: hidden !important; align-items: center !important;
+            }
+            .sidebar-logo, .sidebar-footer { display: none !important; }
+            nav.nav-list { display: flex !important; flex-direction: row !important; overflow-x: auto !important; gap: 0 !important; width: 100% !important; height: 64px !important; padding: 0 4px !important; align-items: center !important; scrollbar-width: none; }
+            nav.nav-list::-webkit-scrollbar { display: none; }
+            .nav-item { flex-direction: column !important; flex-shrink: 0 !important; padding: 5px 10px !important; gap: 2px !important; min-width: 56px !important; height: 54px !important; border-radius: 12px !important; margin: 0 2px !important; justify-content: center !important; font-size: 0.45rem !important; border: none !important; }
+            .nav-item span { font-size: 0.45rem !important; text-align: center !important; white-space: nowrap !important; }
+            .nav-item i { font-size: 1.15rem !important; }
+            main#main { padding: 10px !important; padding-bottom: 80px !important; height: calc(100dvh - 0px) !important; }
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+// ==================== CloudManager (Read-Only) ====================
+const CloudManager = {
+    isReady: () => !!(window.firebaseDB && window.firebaseModules),
+    getDoc: async (path) => {
+        const { doc, getDoc } = window.firebaseModules;
+        const parts = path.split('/').filter(Boolean);
+        const snap = await getDoc(doc(window.firebaseDB, ...parts));
+        return snap.exists() ? snap.data() : null;
+    },
+    loadOnce: async (bid, col) => {
+        const { collection, getDocs } = window.firebaseModules;
+        const snap = await getDocs(collection(window.firebaseDB, `branches/${bid}/${col}`));
+        return snap.docs.map(d => d.data()).filter(item => !item._branchId || item._branchId === bid);
+    },
+    loadBranches: async () => {
+        const { collection, getDocs } = window.firebaseModules;
+        const snap = await getDocs(collection(window.firebaseDB, 'branches'));
+        return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(b => b.status !== 'inactive');
+    }
+};
+
+// ==================== Notification helper ====================
+let _setNotif = null;
+const notify = (msg, type = 'success') => { if (_setNotif) _setNotif({ msg, type }); };
+
+// ==================== Month Accordion ====================
+const MonthAccordion = ({ label, count, total, children, accent = 'blue', defaultOpen }) => {
+    const [open, setOpen] = useState(!!defaultOpen);
+    const colors = {
+        blue:    { bg:'rgba(99,165,255,0.08)',  border:'rgba(99,165,255,0.28)',  text:'rgb(147,197,253)'  },
+        emerald: { bg:'rgba(52,211,153,0.08)',  border:'rgba(52,211,153,0.28)', text:'rgb(110,231,183)'  },
+        red:     { bg:'rgba(251,113,133,0.08)', border:'rgba(251,113,133,0.28)',text:'rgb(252,165,165)'  },
+        violet:  { bg:'rgba(167,139,250,0.08)', border:'rgba(167,139,250,0.28)',text:'rgb(196,181,253)'  },
+        amber:   { bg:'rgba(251,191,36,0.08)',  border:'rgba(251,191,36,0.28)', text:'rgb(253,230,138)'  },
+    };
+    const c = colors[accent] || colors.blue;
+    return (
+        <div className={`month-acc ${open?'open':''}`} style={open ? {background:c.bg, border:`1px solid ${c.border}`} : {}}>
+            <button onClick={() => setOpen(!open)} style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', cursor:'pointer', background:'transparent'}}>
+                <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                    <i className="ph ph-calendar-blank" style={{color: open ? c.text : 'var(--text-muted)', fontSize:'1rem'}}></i>
+                    <span style={{fontWeight:'900', color:'var(--text-primary)', fontSize:'0.9rem'}}>{label}</span>
+                    <span style={{background: open ? `${c.bg}` : 'rgba(255,255,255,0.06)', border:`1px solid ${open ? c.border : 'rgba(255,255,255,0.1)'}`, color: open ? c.text : 'var(--text-muted)', padding:'1px 8px', borderRadius:'20px', fontSize:'0.62rem', fontWeight:'900'}}>{count} سجل</span>
+                </div>
+                <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+                    {total !== undefined && <span style={{fontWeight:'900', color:c.text, fontSize:'1rem'}}>{Number(total).toLocaleString()} <span style={{fontSize:'0.65rem', opacity:0.6}}>ريال</span></span>}
+                    <i className={`ph ph-caret-${open?'up':'down'}`} style={{color:'var(--text-muted)', fontSize:'0.85rem'}}></i>
+                </div>
+            </button>
+            {open && <div style={{borderTop:'1px solid rgba(255,255,255,0.06)'}}>{children}</div>}
+        </div>
+    );
+};
+
+// ==================== Dashboard View ====================
+const DashboardView = ({ transactions, expenses, inventory, customers, settings }) => {
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('en-CA'); // YYYY-MM-DD
+
+    const allSales  = transactions.filter(t => t.type === 'sale' && t.status !== 'returned');
+    const allReturn = transactions.filter(t => t.status === 'returned');
+
+    const todaySales = allSales.filter(t => {
+        if (!t.timestamp) return false;
+        return new Date(t.timestamp).toLocaleDateString('en-CA') === todayStr;
+    });
+
+    const totalRevenue     = allSales.reduce((a, t) => a + Number(t.totalPrice || 0), 0);
+    const totalCost        = allSales.reduce((a, t) => a + (Number(t.buyPrice || 0) * Number(t.qty || 1)), 0);
+    const totalProfit      = allSales.reduce((a, t) => a + ((Number(t.sellPrice || 0) - Number(t.buyPrice || 0)) * Number(t.qty || 1)) + Number(t.scrapValue || 0), 0);
+    const totalExpenses    = expenses.reduce((a, e) => a + Number(e.amount || 0), 0);
+    const netProfit        = totalProfit - totalExpenses;
+    const todayRevenue     = todaySales.reduce((a, t) => a + Number(t.totalPrice || 0), 0);
+    const todayProfit      = todaySales.reduce((a, t) => a + ((Number(t.sellPrice || 0) - Number(t.buyPrice || 0)) * Number(t.qty || 1)), 0);
+    const totalDeferred    = customers.reduce((a, c) => a + Math.max(0, Number(c.balance || 0)), 0);
+    const invValue         = inventory.reduce((a, i) => a + Math.max(0, Number(i.stock || 0)) * Number(i.sellPrice || 0), 0);
+    const lowStockCount    = inventory.filter(i => Number(i.stock || 0) > 0 && Number(i.stock || 0) <= 3).length;
+    const zeroStockCount   = inventory.filter(i => Number(i.stock || 0) <= 0).length;
+
+    // إجمالي الكاش والشبكة (كل الفترات) — يشمل split
+    const totalCashSales   = allSales.reduce((a, t) => a + (t.payMethod === 'cash' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cashPaid || 0) : 0), 0);
+    const totalCardSales   = allSales.reduce((a, t) => a + (t.payMethod === 'card' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cardPaid || 0) : 0), 0);
+
+    // مبيعات اليوم: كاش / شبكة / آجل — يشمل split
+    const todayCashSales   = todaySales.reduce((a, t) => a + (t.payMethod === 'cash' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cashPaid || 0) : 0), 0);
+    const todayCardSales   = todaySales.reduce((a, t) => a + (t.payMethod === 'card' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cardPaid || 0) : 0), 0);
+    const todayDeferSales  = todaySales.filter(t => t.payMethod === 'deferred').reduce((a, t) => a + Number(t.totalPrice || 0), 0);
+
+    // مصروفات اليوم مقسّمة
+    const visibleExpenses   = expenses.filter(e => !e.viewerHidden && !e.excluded && !e.hidden);
+    const todayExpenses     = visibleExpenses.filter(e => {
+        const ts = e.timestamp || (e.date ? new Date(e.date).getTime() : 0);
+        return ts && new Date(ts).toLocaleDateString('en-CA') === todayStr;
+    });
+    const todayCardExp      = todayExpenses.filter(e => e.method === 'card' || e.method === 'transfer').reduce((a, e) => a + Number(e.amount || 0), 0);
+    const todayCashExp      = todayExpenses.filter(e => e.method === 'cash' || !e.method).reduce((a, e) => a + Number(e.amount || 0), 0);
+    const todayNetCash      = todayCashSales - todayCashExp;
+    const todayNetCard      = todayCardSales - todayCardExp;
+
+    const [now, setNow] = useState(new Date());
+    useEffect(() => { const id = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(id); }, []);
+    const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const dateStr = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    const statCards = [
+        { label: 'إجمالي المبيعات', val: totalRevenue, icon: 'ph-currency-circle-dollar', bg: 'rgba(99,165,255,0.18)', border: 'rgba(99,165,255,0.35)', color: 'rgb(147,197,253)', glow: 'rgba(99,165,255,0.12)', sub: `${allSales.length} فاتورة` },
+        { label: 'إجمالي الكاش', val: totalCashSales, icon: 'ph-money', bg: 'rgba(52,211,153,0.18)', border: 'rgba(52,211,153,0.35)', color: 'rgb(110,231,183)', glow: 'rgba(52,211,153,0.10)', sub: 'نقدي' },
+        { label: 'إجمالي الشبكة', val: totalCardSales, icon: 'ph-credit-card', bg: 'rgba(99,165,255,0.14)', border: 'rgba(99,165,255,0.30)', color: 'rgb(147,197,253)', glow: 'rgba(99,165,255,0.10)', sub: 'بطاقة' },
+        { label: 'إجمالي المصروفات', val: totalExpenses, icon: 'ph-receipt', bg: 'rgba(251,113,133,0.18)', border: 'rgba(251,113,133,0.35)', color: 'rgb(252,165,165)', glow: 'rgba(251,113,133,0.10)', sub: 'كل المصروفات' },
+        { label: 'الديون الآجلة', val: totalDeferred, icon: 'ph-users', bg: 'rgba(251,191,36,0.18)', border: 'rgba(251,191,36,0.35)', color: 'rgb(253,230,138)', glow: 'rgba(251,191,36,0.10)', sub: 'العملاء' },
+        { label: 'مبيعات اليوم', val: todayRevenue, icon: 'ph-sun', bg: 'rgba(251,191,36,0.18)', border: 'rgba(251,191,36,0.35)', color: 'rgb(253,230,138)', glow: 'rgba(251,191,36,0.10)', sub: `${todaySales.length} فاتورة` },
+    ];
+
+    const last7 = [];
+    for (let d = 6; d >= 0; d--) {
+        const dt = new Date(); dt.setDate(dt.getDate() - d);
+        const dStr = dt.toLocaleDateString('en-CA');
+        const dayName = dt.toLocaleDateString('ar-SA', { weekday: 'short' });
+        const rev = allSales.filter(t => t.timestamp && new Date(t.timestamp).toLocaleDateString('en-CA') === dStr).reduce((a, t) => a + Number(t.totalPrice || 0), 0);
+        const exp = expenses.filter(e => e.timestamp && new Date(e.timestamp).toLocaleDateString('en-CA') === dStr).reduce((a, e) => a + Number(e.amount || 0), 0);
+        last7.push({ dayName, rev, exp, profit: rev * 0.25 - exp });
+    }
+    const maxVal = Math.max(...last7.map(d => d.rev), 1);
+
+    const topItems = useMemo(() => {
+        const map = {};
+        allSales.forEach(t => { if (t.itemName) map[t.itemName] = (map[t.itemName] || 0) + Number(t.qty || 1); });
+        return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    }, [allSales]);
+
+    return (
+        <div className="animate-slide" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.6rem', fontWeight: '900', color: 'var(--text-primary)', lineHeight: 1.2 }}>لوحة التحكم</h1>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '4px' }}>{settings.shopName || 'نظام البرق'} · {dateStr}</p>
+                </div>
+                <div style={{ background: 'rgba(15,25,60,0.7)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '10px 18px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.4rem', fontWeight: '900', fontFamily: 'monospace', color: 'var(--text-primary)', letterSpacing: '1px' }}>{timeStr}</div>
+                    <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: '700', marginTop: '2px' }}>الوقت الحالي</div>
+                </div>
+            </div>
+
+            {/* Stat cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                {statCards.map(s => (
+                    <div key={s.label} className="stat-card" style={{ background: s.bg, border: `1px solid ${s.border}`, boxShadow: `0 4px 20px ${s.glow}` }}>
+                        <div>
+                            <div className="lbl" style={{ color: s.color }}>{s.label}</div>
+                            <div className="val" style={{ color: s.color }}>{Number(s.val).toLocaleString()}</div>
+                            <div style={{ fontSize: '0.62rem', color: s.color, opacity: 0.6, marginTop: '2px', fontWeight: '700' }}>{s.sub || 'ريال سعودي'}</div>
+                        </div>
+                        <i className={`ph-fill ${s.icon}`} style={{ fontSize: '2rem', color: s.color, opacity: 0.5 }}></i>
+                    </div>
+                ))}
+            </div>
+
+            {/* Chart + Today summary */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '14px' }}>
+                {/* Bar Chart */}
+                <div className="glass-card" style={{ padding: '20px' }}>
+                    <h3 style={{ fontWeight: '900', color: 'var(--text-primary)', marginBottom: '16px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph-fill ph-chart-bar" style={{ color: 'rgb(147,197,253)' }}></i>
+                        مبيعات آخر 7 أيام
+                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '140px' }}>
+                        {last7.map((d, i) => (
+                            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', height: '100%', justifyContent: 'flex-end' }}>
+                                <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: '700', marginBottom: '2px' }}>
+                                    {d.rev > 0 ? d.rev.toLocaleString() : ''}
+                                </div>
+                                <div style={{ width: '100%', borderRadius: '6px 6px 0 0', background: i === 6 ? 'rgba(99,165,255,0.6)' : 'rgba(99,165,255,0.28)', height: `${Math.max(4, (d.rev / maxVal) * 110)}px`, transition: 'all 0.4s ease', border: i === 6 ? '1px solid rgba(99,165,255,0.7)' : '1px solid rgba(99,165,255,0.2)', boxShadow: i === 6 ? '0 0 10px rgba(99,165,255,0.3)' : 'none' }}></div>
+                                <div style={{ fontSize: '0.58rem', color: i === 6 ? 'rgb(147,197,253)' : 'var(--text-muted)', fontWeight: '900', marginTop: '4px' }}>{d.dayName}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Today */}
+                <div className="glass-card" style={{ padding: '20px' }}>
+                    <h3 style={{ fontWeight: '900', color: 'var(--text-primary)', marginBottom: '14px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph-fill ph-sun" style={{ color: 'rgb(253,230,138)' }}></i>
+                        ملخص اليوم
+                        <span style={{ marginRight: 'auto', background: 'rgba(251,191,36,0.15)', color: 'rgb(253,230,138)', padding: '1px 8px', borderRadius: '20px', fontSize: '0.62rem', border: '1px solid rgba(251,191,36,0.3)' }}>{todaySales.length} فاتورة</span>
+                    </h3>
+                    {[
+                        { label: 'المبيعات', val: todayRevenue, color: 'rgb(147,197,253)' },
+                        { label: '🟢 كاش (نقدي + قبض)', val: todayCashSales, color: 'rgb(110,231,183)' },
+                        { label: '🔵 شبكة (بطاقة)', val: todayCardSales, color: 'rgb(147,197,253)' },
+                        { label: '🟡 آجل', val: todayDeferSales, color: 'rgb(253,230,138)' },
+                        { label: 'مصروفات كاش', val: todayCashExp, color: 'rgb(252,165,165)' },
+                        { label: 'مصروفات شبكة', val: todayCardExp, color: 'rgb(252,165,165)' },
+                        { label: 'صافي كاش', val: todayNetCash, color: todayNetCash >= 0 ? 'rgb(110,231,183)' : 'rgb(252,165,165)' },
+                        { label: 'صافي شبكة', val: todayNetCard, color: todayNetCard >= 0 ? 'rgb(110,231,183)' : 'rgb(252,165,165)' },
+                    ].map(r => (
+                        <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: '700' }}>{r.label}</span>
+                            <span style={{ fontWeight: '900', color: r.color, fontSize: '0.9rem' }}>{r.val.toLocaleString()} <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>ر</span></span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Bottom: Top items + Alerts */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                {/* Top items */}
+                <div className="glass-card" style={{ padding: '20px' }}>
+                    <h3 style={{ fontWeight: '900', color: 'var(--text-primary)', marginBottom: '14px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph-fill ph-star" style={{ color: 'rgb(253,230,138)' }}></i>
+                        الأصناف الأكثر مبيعاً
+                    </h3>
+                    {topItems.length === 0 ? (
+                        <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px', fontSize: '0.8rem', fontWeight: '700' }}>لا بيانات</p>
+                    ) : topItems.map(([name, qty], i) => (
+                        <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '24px', height: '24px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: '900', background: i === 0 ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.07)', color: i === 0 ? 'rgb(253,230,138)' : 'var(--text-muted)', border: i === 0 ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.08)' }}>{i+1}</div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
+                                <div className="progress-bar" style={{ marginTop: '3px' }}>
+                                    <div className="progress-fill" style={{ width: `${(qty / topItems[0][1]) * 100}%`, background: 'linear-gradient(90deg, rgba(99,165,255,0.7), rgba(99,102,241,0.5))' }}></div>
+                                </div>
+                            </div>
+                            <span style={{ background: 'rgba(99,165,255,0.15)', color: 'rgb(147,197,253)', border: '1px solid rgba(99,165,255,0.25)', padding: '1px 8px', borderRadius: '8px', fontSize: '0.68rem', fontWeight: '900' }}>{qty}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Alerts */}
+                <div className="glass-card" style={{ padding: '20px' }}>
+                    <h3 style={{ fontWeight: '900', color: 'var(--text-primary)', marginBottom: '14px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="ph-fill ph-warning" style={{ color: 'rgb(252,165,165)' }}></i>
+                        تنبيهات المخزون
+                        {(lowStockCount + zeroStockCount) > 0 && <span style={{ background: 'rgba(251,113,133,0.3)', color: 'rgb(252,165,165)', padding: '1px 8px', borderRadius: '20px', fontSize: '0.62rem', fontWeight: '900', border: '1px solid rgba(251,113,133,0.4)' }}>{lowStockCount + zeroStockCount}</span>}
+                    </h3>
+                    {(lowStockCount + zeroStockCount) === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>
+                            <i className="ph-fill ph-check-circle" style={{ fontSize: '2rem', color: 'rgb(110,231,183)', display: 'block', marginBottom: '8px' }}></i>
+                            <p style={{ color: 'rgb(110,231,183)', fontWeight: '900', fontSize: '0.82rem' }}>المخزون بخير ✓</p>
+                        </div>
+                    ) : (
+                        <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
+                            {inventory.filter(i => Number(i.stock || 0) <= 0).slice(0, 5).map(item => (
+                                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(251,113,133,0.08)', border: '1px solid rgba(251,113,133,0.18)', borderRadius: '10px', padding: '6px 12px', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'rgb(252,165,165)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
+                                    <span style={{ background: 'rgba(239,68,68,0.35)', color: 'white', padding: '1px 8px', borderRadius: '6px', fontSize: '0.62rem', fontWeight: '900', flexShrink: 0 }}>نفد</span>
+                                </div>
+                            ))}
+                            {inventory.filter(i => Number(i.stock || 0) > 0 && Number(i.stock || 0) <= 3).slice(0, 5).map(item => (
+                                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.18)', borderRadius: '10px', padding: '6px 12px', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'rgb(253,230,138)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
+                                    <span style={{ background: 'rgba(251,191,36,0.35)', color: 'white', padding: '1px 8px', borderRadius: '6px', fontSize: '0.62rem', fontWeight: '900', flexShrink: 0 }}>{item.stock}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==================== Ledger View ====================
+const LedgerView = ({ transactions, expenses }) => {
+    const [timeFilter, setTimeFilter] = useState('month');
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+    const [search, setSearch] = useState('');
+
+    // ---- Daily Summary (auto) ----
+    const todayStr = new Date().toLocaleDateString('en-CA');
+
+    const todaySales = useMemo(() => transactions.filter(t =>
+        t.type === 'sale' && t.status !== 'returned' &&
+        t.timestamp && new Date(t.timestamp).toLocaleDateString('en-CA') === todayStr
+    ), [transactions, todayStr]);
+
+    // المصروفات المرئية للمشاهد (يُخفى ما عليه viewerHidden أو excluded أو hidden)
+    const visibleExpenses = useMemo(() => expenses.filter(e => !e.viewerHidden && !e.excluded && !e.hidden), [expenses]);
+
+    const todayExpenses = useMemo(() => visibleExpenses.filter(e => {
+        const ts = e.timestamp || (e.date ? new Date(e.date).getTime() : 0);
+        return ts && new Date(ts).toLocaleDateString('en-CA') === todayStr;
+    }), [visibleExpenses, todayStr]);
+
+    // Today card sales (شبكة = card + split.cardPaid)
+    const todayCardSales  = todaySales.reduce((a, t) => a + (t.payMethod === 'card' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cardPaid || 0) : 0), 0);
+    const todayCashSales  = todaySales.reduce((a, t) => a + (t.payMethod === 'cash' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cashPaid || 0) : 0), 0);
+    const todayTotalSales = todaySales.reduce((a, t) => a + Number(t.totalPrice || 0), 0);
+
+    const todayCardExp  = todayExpenses.filter(e => e.method === 'card' || e.method === 'transfer').reduce((a, e) => a + Number(e.amount || 0), 0);
+    const todayCashExp  = todayExpenses.filter(e => e.method === 'cash' || !e.method).reduce((a, e) => a + Number(e.amount || 0), 0);
+
+    const todayNetCard  = todayCardSales - todayCardExp;
+    const todayNetCash  = todayCashSales - todayCashExp;
+
+    const [showDailySummary, setShowDailySummary] = useState(true);
+
+    // ---- Filtered Transactions (مبيعات فقط) ----
+    const filtered = useMemo(() => {
+        const now = new Date();
+        return transactions.filter(t => {
+            if (t.type !== 'sale' || t.status === 'returned') return false;
+            if (search && !t.itemName?.includes(search) && !t.customerName?.includes(search)) return false;
+            const ts = t.timestamp || 0;
+            if (timeFilter === 'day') return new Date(ts).toDateString() === now.toDateString();
+            if (timeFilter === 'week') return (now - ts) < 7 * 86400000;
+            if (timeFilter === 'month') { const d = new Date(ts); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); }
+            if (timeFilter === 'custom' && dateFrom && dateTo) {
+                const d = new Date(ts).toLocaleDateString('en-CA');
+                return d >= dateFrom && d <= dateTo;
+            }
+            return true;
+        });
+    }, [transactions, search, timeFilter, dateFrom, dateTo]);
+
+    const groupByMonth = (items) => {
+        const months = {};
+        items.forEach(item => {
+            const d = item.timestamp ? new Date(item.timestamp) : null;
+            const key = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` : '0000-00';
+            const label = d ? d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' }) : 'غير محدد';
+            if (!months[key]) months[key] = { key, label, items: [] };
+            months[key].items.push(item);
+        });
+        return Object.values(months).sort((a, b) => b.key.localeCompare(a.key));
+    };
+
+    const groups = groupByMonth(filtered);
+    const totalSales  = filtered.reduce((a, t) => a + Number(t.totalPrice || 0), 0);
+    const totalCard   = filtered.reduce((a, t) => a + (t.payMethod === 'card' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cardPaid || 0) : 0), 0);
+    const totalCash   = filtered.reduce((a, t) => a + (t.payMethod === 'cash' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cashPaid || 0) : 0), 0);
+    const totalCount  = filtered.length;
+
+    // الأرباح = (سعر البيع - سعر الشراء) × الكمية
+    const totalProfit  = filtered.reduce((a, t) => a + ((Number(t.sellPrice || 0) - Number(t.buyPrice || 0)) * Number(t.qty || 1)), 0);
+    // قيمة الرجيع (قطع مستعملة)
+    const totalScrap   = filtered.reduce((a, t) => a + Number(t.scrapValue || 0), 0);
+    // صافي الأرباح = أرباح + رجيع
+    const netProfit    = totalProfit + totalScrap;
+    // الإجمالي الصافي = المبيعات + رجيع
+    const grossTotal   = totalSales + totalScrap;
+
+    return (
+        <div className="animate-slide" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--text-primary)' }}>السجل العام</h1>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '2px', fontWeight: '700' }}>مبيعات فقط · تتغير على أساس الفترة</p>
+                </div>
+            </div>
+
+            {/* إحصائيات شاملة تتغير مع الفلتر */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                {[
+                    { label: 'إجمالي المبيعات', val: totalSales, color: 'rgb(147,197,253)', bg: 'rgba(99,165,255,0.12)', border: 'rgba(99,165,255,0.25)', icon: 'ph-currency-circle-dollar' },
+                    { label: 'إجمالي الكاش', val: totalCash, color: 'rgb(110,231,183)', bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.25)', icon: 'ph-money' },
+                    { label: 'إجمالي الشبكة', val: totalCard, color: 'rgb(147,197,253)', bg: 'rgba(99,165,255,0.12)', border: 'rgba(99,165,255,0.25)', icon: 'ph-credit-card' },
+                    { label: 'العدد', val: totalCount, color: 'rgb(196,181,253)', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.25)', icon: 'ph-receipt', noUnit: true },
+                    { label: 'الأرباح', val: totalProfit, color: 'rgb(110,231,183)', bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.25)', icon: 'ph-trend-up' },
+                    { label: 'صافي الأرباح', val: netProfit, color: netProfit >= 0 ? 'rgb(110,231,183)' : 'rgb(252,165,165)', bg: netProfit >= 0 ? 'rgba(52,211,153,0.12)' : 'rgba(251,113,133,0.12)', border: netProfit >= 0 ? 'rgba(52,211,153,0.25)' : 'rgba(251,113,133,0.25)', icon: 'ph-chart-line-up' },
+                    { label: 'الإجمالي الصافي', val: grossTotal, color: 'rgb(253,230,138)', bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.25)', icon: 'ph-sigma' },
+                    { label: 'قيمة الرجيع', val: totalScrap, color: 'rgb(196,181,253)', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.25)', icon: 'ph-recycle' },
+                ].map(s => (
+                    <div key={s.label} className="stat-card" style={{ background: s.bg, border: `1px solid ${s.border}`, padding: '10px 14px', flexDirection: 'row', gap: '8px' }}>
+                        <i className={`ph-fill ${s.icon}`} style={{ color: s.color, fontSize: '1.1rem', opacity: 0.8, flexShrink: 0 }}></i>
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: '0.58rem', color: s.color, opacity: 0.7, fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</div>
+                            <div style={{ fontSize: '0.95rem', fontWeight: '900', color: s.color }}>
+                                {Number(s.val).toLocaleString()} {!s.noUnit && <span style={{ fontSize: '0.55rem', opacity: 0.6 }}>ر</span>}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* ==================== ملخص اليوم التلقائي ==================== */}
+            <div className="glass-card" style={{ overflow: 'hidden', border: '1px solid rgba(251,191,36,0.25)', background: 'rgba(251,191,36,0.04)' }}>
+                {/* Header row */}
+                <button onClick={() => setShowDailySummary(!showDailySummary)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'transparent', cursor: 'pointer', borderBottom: showDailySummary ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <i className="ph-fill ph-sun" style={{ color: 'rgb(253,230,138)', fontSize: '1.1rem' }}></i>
+                        <span style={{ fontWeight: '900', color: 'var(--text-primary)', fontSize: '0.95rem' }}>ملخص اليوم — الأرباح والخسارة</span>
+                        <span style={{ background: 'rgba(251,191,36,0.2)', color: 'rgb(253,230,138)', padding: '1px 10px', borderRadius: '20px', fontSize: '0.62rem', fontWeight: '900', border: '1px solid rgba(251,191,36,0.35)' }}>تلقائي</span>
+                    </div>
+                    <i className={`ph ph-caret-${showDailySummary ? 'up' : 'down'}`} style={{ color: 'var(--text-muted)' }}></i>
+                </button>
+
+                {showDailySummary && (
+                    <div style={{ padding: '18px' }}>
+                        {/* إجمالي المبيعات */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(99,165,255,0.10)', border: '1px solid rgba(99,165,255,0.22)', borderRadius: '12px', padding: '12px 16px', marginBottom: '14px' }}>
+                            <span style={{ fontWeight: '900', color: 'rgb(147,197,253)', fontSize: '0.95rem' }}>💰 إجمالي المبيعات</span>
+                            <span style={{ fontWeight: '900', color: 'rgb(147,197,253)', fontSize: '1.2rem', fontFamily: 'monospace' }}>{todayTotalSales.toLocaleString()} <span style={{ fontSize: '0.65rem', opacity: 0.6 }}>ر</span></span>
+                        </div>
+
+                        {/* Two columns: شبكة | كاش */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                            {/* شبكة */}
+                            <div style={{ background: 'rgba(99,165,255,0.07)', border: '1px solid rgba(99,165,255,0.2)', borderRadius: '14px', padding: '14px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                                    <span style={{ fontSize: '1rem' }}>🔵</span>
+                                    <span style={{ fontWeight: '900', color: 'rgb(147,197,253)', fontSize: '0.85rem' }}>الشبكة</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '700' }}>مبيعات شبكة</span>
+                                    <span style={{ fontWeight: '900', color: 'rgb(147,197,253)', fontFamily: 'monospace' }}>{todayCardSales.toLocaleString()} <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>ر</span></span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'rgb(252,165,165)', fontWeight: '700' }}>(−) مصروفات شبكة</span>
+                                    <span style={{ fontWeight: '900', color: 'rgb(252,165,165)', fontFamily: 'monospace' }}>{todayCardExp.toLocaleString()} <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>ر</span></span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0 0' }}>
+                                    <span style={{ fontSize: '0.8rem', fontWeight: '900', color: todayNetCard >= 0 ? 'rgb(110,231,183)' : 'rgb(252,165,165)' }}>صافي شبكة</span>
+                                    <span style={{ fontWeight: '900', fontSize: '1.05rem', color: todayNetCard >= 0 ? 'rgb(110,231,183)' : 'rgb(252,165,165)', fontFamily: 'monospace' }}>{todayNetCard.toLocaleString()} <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>ر</span></span>
+                                </div>
+                            </div>
+
+                            {/* كاش */}
+                            <div style={{ background: 'rgba(52,211,153,0.07)', border: '1px solid rgba(52,211,153,0.2)', borderRadius: '14px', padding: '14px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                                    <span style={{ fontSize: '1rem' }}>🟢</span>
+                                    <span style={{ fontWeight: '900', color: 'rgb(110,231,183)', fontSize: '0.85rem' }}>الكاش</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '700' }}>مبيعات كاش</span>
+                                    <span style={{ fontWeight: '900', color: 'rgb(110,231,183)', fontFamily: 'monospace' }}>{todayCashSales.toLocaleString()} <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>ر</span></span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'rgb(252,165,165)', fontWeight: '700' }}>(−) مصروفات كاش</span>
+                                    <span style={{ fontWeight: '900', color: 'rgb(252,165,165)', fontFamily: 'monospace' }}>{todayCashExp.toLocaleString()} <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>ر</span></span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0 0' }}>
+                                    <span style={{ fontSize: '0.8rem', fontWeight: '900', color: todayNetCash >= 0 ? 'rgb(110,231,183)' : 'rgb(252,165,165)' }}>صافي كاش</span>
+                                    <span style={{ fontWeight: '900', fontSize: '1.05rem', color: todayNetCash >= 0 ? 'rgb(110,231,183)' : 'rgb(252,165,165)', fontFamily: 'monospace' }}>{todayNetCash.toLocaleString()} <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>ر</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* تفاصيل مصروفات الشبكة */}
+                        {todayExpenses.filter(e => e.method === 'card' || e.method === 'transfer').length > 0 && (
+                            <div style={{ marginBottom: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                                    <span style={{ fontSize: '0.85rem' }}>🔵</span>
+                                    <span style={{ fontWeight: '900', color: 'rgb(147,197,253)', fontSize: '0.8rem' }}>تفاصيل مصروفات الشبكة</span>
+                                </div>
+                                <div style={{ background: 'rgba(99,165,255,0.05)', border: '1px solid rgba(99,165,255,0.15)', borderRadius: '10px', overflow: 'hidden' }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                        <thead>
+                                            <tr style={{ background: 'rgba(99,165,255,0.08)' }}>
+                                                <th style={{ padding: '7px 12px', textAlign: 'right', fontSize: '0.65rem', color: 'rgb(147,197,253)', fontWeight: '700' }}>البيان</th>
+                                                <th style={{ padding: '7px 12px', textAlign: 'left', fontSize: '0.65rem', color: 'rgb(147,197,253)', fontWeight: '700' }}>المبلغ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {todayExpenses.filter(e => e.method === 'card' || e.method === 'transfer').map((ex, i) => (
+                                                <tr key={ex.id || i} style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                                                    <td style={{ padding: '6px 12px', fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '700' }}>{ex.title || '-'}</td>
+                                                    <td style={{ padding: '6px 12px', fontSize: '0.75rem', fontWeight: '900', color: 'rgb(252,165,165)', textAlign: 'left', fontFamily: 'monospace', direction: 'ltr' }}>−{Number(ex.amount).toLocaleString()} ر</td>
+                                                </tr>
+                                            ))}
+                                            <tr style={{ background: 'rgba(99,165,255,0.08)', borderTop: '1px solid rgba(99,165,255,0.2)' }}>
+                                                <td style={{ padding: '7px 12px', fontSize: '0.75rem', fontWeight: '900', color: 'rgb(147,197,253)' }}>الإجمالي</td>
+                                                <td style={{ padding: '7px 12px', fontSize: '0.82rem', fontWeight: '900', color: 'rgb(252,165,165)', textAlign: 'left', fontFamily: 'monospace', direction: 'ltr' }}>−{todayCardExp.toLocaleString()} ر</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* تفاصيل مصروفات الكاش */}
+                        {todayExpenses.filter(e => e.method === 'cash' || !e.method).length > 0 && (
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                                    <span style={{ fontSize: '0.85rem' }}>🟢</span>
+                                    <span style={{ fontWeight: '900', color: 'rgb(110,231,183)', fontSize: '0.8rem' }}>تفاصيل مصروفات الكاش</span>
+                                </div>
+                                <div style={{ background: 'rgba(52,211,153,0.05)', border: '1px solid rgba(52,211,153,0.15)', borderRadius: '10px', overflow: 'hidden' }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                        <thead>
+                                            <tr style={{ background: 'rgba(52,211,153,0.08)' }}>
+                                                <th style={{ padding: '7px 12px', textAlign: 'right', fontSize: '0.65rem', color: 'rgb(110,231,183)', fontWeight: '700' }}>البيان</th>
+                                                <th style={{ padding: '7px 12px', textAlign: 'left', fontSize: '0.65rem', color: 'rgb(110,231,183)', fontWeight: '700' }}>المبلغ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {todayExpenses.filter(e => e.method === 'cash' || !e.method).map((ex, i) => (
+                                                <tr key={ex.id || i} style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                                                    <td style={{ padding: '6px 12px', fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '700' }}>{ex.title || '-'}</td>
+                                                    <td style={{ padding: '6px 12px', fontSize: '0.75rem', fontWeight: '900', color: 'rgb(252,165,165)', textAlign: 'left', fontFamily: 'monospace', direction: 'ltr' }}>−{Number(ex.amount).toLocaleString()} ر</td>
+                                                </tr>
+                                            ))}
+                                            <tr style={{ background: 'rgba(52,211,153,0.08)', borderTop: '1px solid rgba(52,211,153,0.2)' }}>
+                                                <td style={{ padding: '7px 12px', fontSize: '0.75rem', fontWeight: '900', color: 'rgb(110,231,183)' }}>الإجمالي</td>
+                                                <td style={{ padding: '7px 12px', fontSize: '0.82rem', fontWeight: '900', color: 'rgb(252,165,165)', textAlign: 'left', fontFamily: 'monospace', direction: 'ltr' }}>−{todayCashExp.toLocaleString()} ر</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+            {/* ==================== نهاية ملخص اليوم ==================== */}
+
+            {/* Filters */}
+            <div className="glass-card" style={{ padding: '14px 16px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {[['all','الكل'],['day','اليوم'],['week','الأسبوع'],['month','الشهر'],['custom','مخصص']].map(([v,l]) => (
+                        <button key={v} onClick={() => setTimeFilter(v)} className={`chip ${timeFilter===v?'active':''}`}>{l}</button>
+                    ))}
+                    <input className="input-field" placeholder="بحث..." value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: '180px', padding: '6px 10px', fontSize: '0.78rem' }} />
+                </div>
+                {timeFilter === 'custom' && (
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
+                        <input type="date" className="input-field" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ maxWidth: '160px' }} />
+                        <span style={{ color: 'var(--text-muted)', fontWeight: '700' }}>—</span>
+                        <input type="date" className="input-field" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ maxWidth: '160px' }} />
+                    </div>
+                )}
+            </div>
+
+            {/* Table */}
+            {groups.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
+                    <i className="ph ph-clipboard-text" style={{ fontSize: '3rem', display: 'block', marginBottom: '12px' }}></i>
+                    <p style={{ fontWeight: '700' }}>لا توجد مبيعات</p>
+                </div>
+            ) : groups.map(group => {
+                const groupTotal = group.items.reduce((a, t) => a + Number(t.totalPrice || 0), 0);
+                return (
+                    <MonthAccordion key={group.key} label={group.label} count={group.items.length} total={groupTotal} accent="blue" defaultOpen={groups.indexOf(group) === 0}>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ minWidth: '600px' }}>
+                                <thead>
+                                    <tr>
+                                        <th>التاريخ</th>
+                                        <th>طريقة الدفع</th>
+                                        <th>الصنف</th>
+                                        <th style={{ textAlign: 'center' }}>🟢 كاش</th>
+                                        <th style={{ textAlign: 'center' }}>🔵 شبكة</th>
+                                        <th style={{ textAlign: 'center' }}>الإجمالي</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {[...group.items].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).map(t => {
+                                        const cashVal = t.payMethod === 'cash' ? Number(t.totalPrice || 0) : (t.payMethod === 'split' ? Number(t.cashPaid || 0) : 0);
+                                        const cardVal = t.payMethod === 'card' ? Number(t.totalPrice || 0) : (t.payMethod === 'split' ? Number(t.cardPaid || 0) : 0);
+                                        const total   = Number(t.totalPrice || 0);
+                                        const payLabel = t.payMethod === 'cash' ? 'نقدي' : t.payMethod === 'card' ? 'شبكة' : t.payMethod === 'split' ? 'متعدد' : t.payMethod === 'deferred' ? 'آجل' : '-';
+                                        return (
+                                            <tr key={t.id}>
+                                                <td style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.date?.split(',')[0] || '-'}</td>
+                                                <td>
+                                                    <span className="badge" style={{ background: t.payMethod==='cash' ? 'rgba(52,211,153,0.12)' : t.payMethod==='card' ? 'rgba(99,165,255,0.12)' : t.payMethod==='split' ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.06)', color: t.payMethod==='cash' ? 'rgb(110,231,183)' : t.payMethod==='card' ? 'rgb(147,197,253)' : t.payMethod==='split' ? 'rgb(196,181,253)' : 'var(--text-muted)', border: '1px solid transparent' }}>{payLabel}</span>
+                                                </td>
+                                                <td>
+                                                    <div style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '0.8rem' }}>{t.itemName || '-'}</div>
+                                                    {t.customerName && <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{t.customerName}</div>}
+                                                </td>
+                                                <td style={{ textAlign: 'center', fontWeight: '700', color: 'rgb(110,231,183)' }}>{cashVal > 0 ? cashVal.toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
+                                                <td style={{ textAlign: 'center', fontWeight: '700', color: 'rgb(147,197,253)' }}>{cardVal > 0 ? cardVal.toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
+                                                <td style={{ textAlign: 'center', fontWeight: '900', color: 'var(--text-primary)' }}>{total.toLocaleString()}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </MonthAccordion>
+                );
+            })}
+        </div>
+    );
+};
+
+// ==================== Profit & Loss View ====================
+const ProfitLossView = ({ transactions, expenses, inventory }) => {
+    const [period, setPeriod] = useState('month');
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+
+    const filterByPeriod = useCallback((ts) => {
+        if (!ts) return false;
+        const now = new Date();
+        if (period === 'day') return new Date(ts).toDateString() === now.toDateString();
+        if (period === 'week') return (Date.now() - ts) < 7 * 86400000;
+        if (period === 'month') { const d = new Date(ts); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); }
+        if (period === 'quarter') return (Date.now() - ts) < 90 * 86400000;
+        if (period === 'year') return new Date(ts).getFullYear() === now.getFullYear();
+        if (period === 'custom' && dateFrom && dateTo) {
+            const d = new Date(ts).toLocaleDateString('en-CA');
+            return d >= dateFrom && d <= dateTo;
+        }
+        return true;
+    }, [period, dateFrom, dateTo]);
+
+    const sales       = transactions.filter(t => t.type === 'sale' && t.status !== 'returned' && filterByPeriod(t.timestamp));
+    // إخفاء المصروفات التي وضع عليها المدير viewerHidden:true أو excluded:true أو hidden:true
+    const filteredExp = expenses.filter(e =>
+        !e.viewerHidden && !e.excluded && !e.hidden &&
+        filterByPeriod(e.timestamp || (e.date ? new Date(e.date).getTime() : 0))
+    );
+
+    // إجماليات
+    const totalSales  = sales.reduce((a, t) => a + Number(t.totalPrice || 0), 0);
+    const cardSales   = sales.reduce((a, t) => a + (t.payMethod === 'card' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cardPaid || 0) : 0), 0);
+    const cashSales   = sales.reduce((a, t) => a + (t.payMethod === 'cash' ? Number(t.totalPrice || 0) : t.payMethod === 'split' ? Number(t.cashPaid || 0) : 0), 0);
+
+    const cardExpList = filteredExp.filter(e => e.method === 'card' || e.method === 'transfer');
+    const cashExpList = filteredExp.filter(e => e.method === 'cash' || (!e.method));
+    const cardExp     = cardExpList.reduce((a, e) => a + Number(e.amount || 0), 0);
+    const cashExp     = cashExpList.reduce((a, e) => a + Number(e.amount || 0), 0);
+
+    const netCard = cardSales - cardExp;
+    const netCash = cashSales - cashExp;
+
+    // تسمية الفترة
+    const now = new Date();
+    const periodLabel = period === 'day' ? `اليوم — ${now.toLocaleDateString('ar-SA', { weekday:'long', day:'numeric', month:'long' })}`
+        : period === 'week' ? 'آخر 7 أيام'
+        : period === 'month' ? now.toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })
+        : period === 'quarter' ? 'ربع السنة الأخير'
+        : period === 'year' ? `سنة ${now.getFullYear()}`
+        : period === 'all' ? 'كل الفترات'
+        : `${dateFrom} — ${dateTo}`;
+
+    // مكوّن سطر قيمة
+    const VRow = ({ label, val, color, bold, indent, minus }) => (
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
+            padding: bold ? '10px 0' : '7px 0',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            paddingRight: indent ? '14px' : '0' }}>
+            <span style={{ fontSize: bold ? '0.88rem' : '0.78rem', fontWeight: bold ? '900' : '700',
+                color: bold ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{label}</span>
+            <span style={{ fontWeight:'900', color: color || 'var(--text-primary)',
+                fontSize: bold ? '1.05rem' : '0.9rem', fontFamily:'monospace', direction:'ltr' }}>
+                {minus ? '−' : ''}{Number(val).toLocaleString()} <span style={{fontSize:'0.6rem',opacity:0.55}}>ر</span>
+            </span>
+        </div>
+    );
+
+    return (
+        <div className="animate-slide" style={{ display:'flex', flexDirection:'column', gap:'18px' }}>
+
+            {/* Header */}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:'10px' }}>
+                <div>
+                    <h1 style={{ fontSize:'1.5rem', fontWeight:'900', color:'var(--text-primary)' }}>الأرباح والخسائر</h1>
+                    <p style={{ color:'var(--text-muted)', fontSize:'0.75rem', marginTop:'2px', fontWeight:'700' }}>{periodLabel} · عرض فقط</p>
+                </div>
+                <div style={{ background:'rgba(99,165,255,0.12)', border:'1px solid rgba(99,165,255,0.25)', borderRadius:'20px', padding:'4px 14px', fontSize:'0.7rem', fontWeight:'900', color:'rgb(147,197,253)' }}>
+                    ⚡ نظام البرق — التقرير السريع | {now.toLocaleDateString('ar-SA', { month:'long', year:'numeric' })}
+                </div>
+            </div>
+
+            {/* Period filter */}
+            <div className="glass-card" style={{ padding:'14px 16px' }}>
+                <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', alignItems:'center' }}>
+                    {[['day','اليوم'],['week','أسبوع'],['month','الشهر'],['quarter','ربع سنة'],['year','السنة'],['all','الكل'],['custom','مخصص']].map(([v,l]) => (
+                        <button key={v} onClick={() => setPeriod(v)} className={`chip ${period===v?'active':''}`}>{l}</button>
+                    ))}
+                </div>
+                {period === 'custom' && (
+                    <div style={{ display:'flex', gap:'10px', marginTop:'10px', alignItems:'center' }}>
+                        <input type="date" className="input-field" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ maxWidth:'160px' }} />
+                        <span style={{ color:'var(--text-muted)' }}>—</span>
+                        <input type="date" className="input-field" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ maxWidth:'160px' }} />
+                    </div>
+                )}
+            </div>
+
+            {/* ===== البطاقة الرئيسية: ملخص المبيعات والمصروفات ===== */}
+            <div className="glass-card" style={{ overflow:'hidden', border:'1px solid rgba(99,165,255,0.2)' }}>
+
+                {/* عنوان */}
+                <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', gap:'10px', background:'rgba(99,165,255,0.06)' }}>
+                    <span style={{ fontSize:'1.1rem' }}>📊</span>
+                    <span style={{ fontWeight:'900', color:'var(--text-primary)', fontSize:'1rem' }}>ملخص المبيعات والمصروفات</span>
+                </div>
+
+                <div style={{ padding:'18px 20px', display:'flex', flexDirection:'column', gap:'0' }}>
+
+                    {/* إجمالي المبيعات */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', background:'rgba(99,165,255,0.10)', border:'1px solid rgba(99,165,255,0.22)', borderRadius:'12px', padding:'12px 16px', marginBottom:'16px' }}>
+                        <span style={{ fontSize:'1.1rem' }}>💰</span>
+                        <span style={{ fontWeight:'900', color:'rgb(147,197,253)', fontSize:'0.95rem', flex:1 }}>إجمالي المبيعات</span>
+                        <span style={{ fontWeight:'900', color:'rgb(147,197,253)', fontSize:'1.3rem', fontFamily:'monospace', direction:'ltr' }}>
+                            {totalSales.toLocaleString()} <span style={{fontSize:'0.65rem',opacity:0.6}}>ر</span>
+                        </span>
+                    </div>
+
+                    {/* شبكة + كاش جنبًا إلى جنب */}
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'16px' }}>
+
+                        {/* === شبكة === */}
+                        <div style={{ background:'rgba(99,165,255,0.06)', border:'1px solid rgba(99,165,255,0.18)', borderRadius:'14px', padding:'14px 16px' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'12px' }}>
+                                <span style={{ fontSize:'1rem' }}>🔵</span>
+                                <span style={{ fontWeight:'900', color:'rgb(147,197,253)', fontSize:'0.88rem' }}>مبيعات شبكة</span>
+                                <span style={{ marginRight:'auto', fontWeight:'900', color:'rgb(147,197,253)', fontFamily:'monospace', fontSize:'1rem' }}>{cardSales.toLocaleString()} <span style={{fontSize:'0.6rem',opacity:0.6}}>ر</span></span>
+                            </div>
+                            <VRow label="(−) مصروفات شبكة" val={cardExp} color="rgb(252,165,165)" minus indent />
+                            <div style={{ paddingTop:'8px' }}>
+                                <VRow label="صافي شبكة" val={netCard} color={netCard>=0?'rgb(110,231,183)':'rgb(252,165,165)'} bold />
+                            </div>
+                        </div>
+
+                        {/* === كاش === */}
+                        <div style={{ background:'rgba(52,211,153,0.06)', border:'1px solid rgba(52,211,153,0.18)', borderRadius:'14px', padding:'14px 16px' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'12px' }}>
+                                <span style={{ fontSize:'1rem' }}>🟢</span>
+                                <span style={{ fontWeight:'900', color:'rgb(110,231,183)', fontSize:'0.88rem' }}>مبيعات كاش</span>
+                                <span style={{ marginRight:'auto', fontWeight:'900', color:'rgb(110,231,183)', fontFamily:'monospace', fontSize:'1rem' }}>{cashSales.toLocaleString()} <span style={{fontSize:'0.6rem',opacity:0.6}}>ر</span></span>
+                            </div>
+                            <VRow label="(−) مصروفات كاش" val={cashExp} color="rgb(252,165,165)" minus indent />
+                            <div style={{ paddingTop:'8px' }}>
+                                <VRow label="صافي كاش" val={netCash} color={netCash>=0?'rgb(110,231,183)':'rgb(252,165,165)'} bold />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ===== تفاصيل مصروفات الشبكة ===== */}
+                    {cardExpList.length > 0 && (
+                        <div style={{ marginBottom:'14px' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'8px' }}>
+                                <span>🔵</span>
+                                <span style={{ fontWeight:'900', color:'rgb(147,197,253)', fontSize:'0.82rem' }}>تفاصيل مصروفات الشبكة</span>
+                            </div>
+                            <div style={{ background:'rgba(99,165,255,0.05)', border:'1px solid rgba(99,165,255,0.14)', borderRadius:'12px', overflow:'hidden' }}>
+                                <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                                    <thead>
+                                        <tr style={{ background:'rgba(99,165,255,0.10)' }}>
+                                            <th style={{ padding:'7px 14px', textAlign:'right', fontSize:'0.65rem', color:'rgb(147,197,253)', fontWeight:'700', letterSpacing:'0.04em' }}>البيان</th>
+                                            <th style={{ padding:'7px 14px', textAlign:'left', fontSize:'0.65rem', color:'rgb(147,197,253)', fontWeight:'700', letterSpacing:'0.04em' }}>المبلغ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {cardExpList.map((ex, i) => (
+                                            <tr key={ex.id || i} style={{ borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+                                                <td style={{ padding:'8px 14px', fontSize:'0.78rem', color:'var(--text-secondary)', fontWeight:'700' }}>{ex.title || '-'}</td>
+                                                <td style={{ padding:'8px 14px', fontSize:'0.78rem', fontWeight:'900', color:'rgb(252,165,165)', textAlign:'left', fontFamily:'monospace', direction:'ltr' }}>−{Number(ex.amount).toLocaleString()} ر</td>
+                                            </tr>
+                                        ))}
+                                        <tr style={{ background:'rgba(99,165,255,0.09)', borderTop:'1px solid rgba(99,165,255,0.22)' }}>
+                                            <td style={{ padding:'8px 14px', fontSize:'0.78rem', fontWeight:'900', color:'rgb(147,197,253)' }}>الإجمالي</td>
+                                            <td style={{ padding:'8px 14px', fontSize:'0.85rem', fontWeight:'900', color:'rgb(252,165,165)', textAlign:'left', fontFamily:'monospace', direction:'ltr' }}>−{cardExp.toLocaleString()} ر</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ===== تفاصيل مصروفات الكاش ===== */}
+                    {cashExpList.length > 0 && (
+                        <div>
+                            <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'8px' }}>
+                                <span>🟢</span>
+                                <span style={{ fontWeight:'900', color:'rgb(110,231,183)', fontSize:'0.82rem' }}>تفاصيل مصروفات الكاش</span>
+                            </div>
+                            <div style={{ background:'rgba(52,211,153,0.05)', border:'1px solid rgba(52,211,153,0.14)', borderRadius:'12px', overflow:'hidden' }}>
+                                <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                                    <thead>
+                                        <tr style={{ background:'rgba(52,211,153,0.10)' }}>
+                                            <th style={{ padding:'7px 14px', textAlign:'right', fontSize:'0.65rem', color:'rgb(110,231,183)', fontWeight:'700', letterSpacing:'0.04em' }}>البيان</th>
+                                            <th style={{ padding:'7px 14px', textAlign:'left', fontSize:'0.65rem', color:'rgb(110,231,183)', fontWeight:'700', letterSpacing:'0.04em' }}>المبلغ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {cashExpList.map((ex, i) => (
+                                            <tr key={ex.id || i} style={{ borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+                                                <td style={{ padding:'8px 14px', fontSize:'0.78rem', color:'var(--text-secondary)', fontWeight:'700' }}>{ex.title || '-'}</td>
+                                                <td style={{ padding:'8px 14px', fontSize:'0.78rem', fontWeight:'900', color:'rgb(252,165,165)', textAlign:'left', fontFamily:'monospace', direction:'ltr' }}>−{Number(ex.amount).toLocaleString()} ر</td>
+                                            </tr>
+                                        ))}
+                                        <tr style={{ background:'rgba(52,211,153,0.09)', borderTop:'1px solid rgba(52,211,153,0.22)' }}>
+                                            <td style={{ padding:'8px 14px', fontSize:'0.78rem', fontWeight:'900', color:'rgb(110,231,183)' }}>الإجمالي</td>
+                                            <td style={{ padding:'8px 14px', fontSize:'0.85rem', fontWeight:'900', color:'rgb(252,165,165)', textAlign:'left', fontFamily:'monospace', direction:'ltr' }}>−{cashExp.toLocaleString()} ر</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* حالة فارغة */}
+                    {sales.length === 0 && (
+                        <div style={{ textAlign:'center', padding:'30px', color:'var(--text-muted)' }}>
+                            <i className="ph ph-chart-line-up" style={{ fontSize:'2.5rem', display:'block', marginBottom:'10px' }}></i>
+                            <p style={{ fontWeight:'700', fontSize:'0.82rem' }}>لا توجد بيانات في هذه الفترة</p>
+                        </div>
+                    )}
+
+                    {/* فوتر التقرير */}
+                    <div style={{ marginTop:'18px', paddingTop:'12px', borderTop:'1px solid rgba(255,255,255,0.07)', display:'flex', justifyContent:'center' }}>
+                        <span style={{ fontSize:'0.65rem', color:'var(--text-muted)', fontWeight:'700', letterSpacing:'0.05em' }}>
+                            ⚡ نظام البرق — التقرير السريع | {now.toLocaleDateString('ar-SA', { month:'long', year:'numeric' })}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==================== Main App ====================
+const App = () => {
+    const [notification, setNotification] = useState(null);
+    _setNotif = (n) => { setNotification(n); setTimeout(() => setNotification(null), 3000); };
+
+    const [cloudStatus, setCloudStatus] = useState('disconnected');
+    const [firebaseUser, setFirebaseUser] = useState(null);
+    const [userProfile, setUserProfile] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoadingBranches, setIsLoadingBranches] = useState(false);
+    const [allBranches, setAllBranches] = useState([]);
+    const [currentBranch, setCurrentBranch] = useState(null);
+
+    const [inventory, setInventory] = useState([]);
+    const [transactions, setTransactions] = useState([]);
+    const [customers, setCustomers] = useState([]);
+    const [expenses, setExpenses] = useState([]);
+    const [settings, setSettings] = useState({ shopName: 'نظام البرق', shopDesc: '', taxNumber: '', phone: '', address: '' });
+
+    const [activeTab, setActiveTab] = useState('dashboard');
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginPass, setLoginPass] = useState('');
+    const [loginError, setLoginError] = useState('');
+    const [loginLoading, setLoginLoading] = useState(false);
+
+    // Firebase Auth
+    useEffect(() => {
+        if (!window.firebaseDB) return;
+        const start = () => {
+            const { onAuthStateChanged } = window.firebaseModules;
+            onAuthStateChanged(window.firebaseAuth, async (user) => {
+                if (user) {
+                    setFirebaseUser(user);
+                    setCloudStatus('syncing');
+                    const profile = await CloudManager.getDoc('users/' + user.uid) || { role: 'viewer' };
+                    setUserProfile(profile);
+                    setIsAuthenticated(true);
+                    loadBranches(profile);
+                } else {
+                    setFirebaseUser(null); setIsAuthenticated(false);
+                    setCurrentBranch(null); setAllBranches([]);
+                    setInventory([]); setTransactions([]); setCustomers([]); setExpenses([]);
+                    setCloudStatus('disconnected');
+                }
+            });
+        };
+        if (window.firebaseReady) start();
+        else window.addEventListener('firebaseReady', start, { once: true });
+    }, []);
+
+    const loadBranches = async (profile) => {
+        setIsLoadingBranches(true);
+        try {
+            const branches = await CloudManager.loadBranches();
+            const role = profile?.role || 'viewer';
+            let allowed = (role === 'admin' || profile?.branchId === 'all')
+                ? branches
+                : branches.filter(b => b.id === profile?.branchId);
+            setAllBranches(allowed);
+            if (allowed.length === 1) {
+                setCurrentBranch(allowed[0]);
+                await loadBranchData(allowed[0].id);
+            } else if (allowed.length > 1) {
+                setCloudStatus('connected');
+            } else {
+                notify('⚠️ لا توجد فروع مخصصة لك', 'error');
+                setCloudStatus('connected');
+            }
+        } catch (e) {
+            console.error(e); setCloudStatus('disconnected');
+        } finally {
+            setIsLoadingBranches(false);
+        }
+    };
+
+    const loadBranchData = async (branchId) => {
+        setCloudStatus('syncing');
+        try {
+            const [inv, cust, exp, trans, sett] = await Promise.all([
+                CloudManager.loadOnce(branchId, 'inventory'),
+                CloudManager.loadOnce(branchId, 'customers'),
+                CloudManager.loadOnce(branchId, 'expenses'),
+                CloudManager.loadOnce(branchId, 'transactions'),
+                CloudManager.loadOnce(branchId, 'settings'),
+            ]);
+            const f = d => d.filter(i => !i._init);
+            setInventory(f(inv));
+            setCustomers(f(cust));
+            setExpenses(f(exp));
+            setTransactions([...f(trans)].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
+            if (f(sett).length > 0) setSettings(s => ({ ...s, ...f(sett)[0] }));
+            setCloudStatus('connected');
+            notify('✅ تم تحميل البيانات');
+        } catch (e) {
+            console.error(e); setCloudStatus('disconnected');
+            notify('❌ خطأ في تحميل البيانات', 'error');
+        }
+    };
+
+    const handleLogin = async () => {
+        if (!loginEmail || !loginPass) { setLoginError('أدخل البريد وكلمة المرور'); return; }
+        setLoginLoading(true); setLoginError('');
+        try {
+            const { signInWithEmailAndPassword } = window.firebaseModules;
+            await signInWithEmailAndPassword(window.firebaseAuth, loginEmail, loginPass);
+        } catch (e) {
+            const msgs = { 'auth/invalid-credential': 'بريد أو كلمة مرور خاطئة', 'auth/user-not-found': 'المستخدم غير موجود', 'auth/wrong-password': 'كلمة المرور خاطئة' };
+            setLoginError(msgs[e.code] || 'خطأ في تسجيل الدخول');
+        } finally {
+            setLoginLoading(false);
+        }
+    };
+
+    const navItems = [
+        { id: 'dashboard', label: 'لوحة التحكم', icon: 'ph-squares-four' },
+        { id: 'ledger',    label: 'السجل العام',  icon: 'ph-list-dashes'  },
+        { id: 'profitloss',label: 'الأرباح والخسائر', icon: 'ph-chart-line-up' },
+    ];
+
+    // ---- Login Screen ----
+    if (!isAuthenticated) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                <div className="login-glass" style={{ padding: '40px', borderRadius: '28px', width: '100%', maxWidth: '400px', textAlign: 'center', animation: 'slideUp 0.35s ease-out' }}>
+                    <div style={{ fontSize: '3.5rem', marginBottom: '12px', filter: 'drop-shadow(0 0 18px rgba(99,165,255,0.5))' }}>⚡</div>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '4px' }}>نظام البرق</h1>
+                    <div className="viewer-badge" style={{ display: 'inline-flex', gap: '5px', alignItems: 'center', marginBottom: '24px' }}>
+                        <i className="ph-fill ph-eye"></i> صلاحية مشاهدة فقط
+                    </div>
+                    {!window.firebaseDB ? (
+                        <div style={{ background: 'rgba(251,113,133,0.12)', border: '1px solid rgba(251,113,133,0.3)', borderRadius: '14px', padding: '16px', color: 'rgb(252,165,165)', fontWeight: '700', fontSize: '0.82rem' }}>
+                            ❌ Firebase غير متصل. تأكد من الاتصال بالإنترنت.
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', textAlign: 'right' }}>البريد الإلكتروني</label>
+                                <input type="email" className="input-field" dir="ltr" placeholder="viewer@example.com" value={loginEmail}
+                                    onChange={e => { setLoginEmail(e.target.value); setLoginError(''); }}
+                                    onKeyDown={e => e.key === 'Enter' && handleLogin()} autoFocus />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', textAlign: 'right' }}>كلمة المرور</label>
+                                <input type="password" className="input-field" placeholder="••••••••" value={loginPass}
+                                    onChange={e => { setLoginPass(e.target.value); setLoginError(''); }}
+                                    onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+                            </div>
+                            {loginError && <p style={{ color: 'rgb(252,165,165)', fontSize: '0.8rem', fontWeight: '700', animation: 'fadeIn 0.2s' }}>{loginError}</p>}
+                            <button onClick={handleLogin} disabled={loginLoading} style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.65), rgba(99,102,241,0.55))', border: '1px solid rgba(99,165,255,0.4)', color: 'white', padding: '14px', borderRadius: '14px', fontWeight: '900', fontSize: '1rem', cursor: loginLoading ? 'not-allowed' : 'pointer', opacity: loginLoading ? 0.6 : 1 }}>
+                                {loginLoading ? '⏳ جاري الدخول...' : '👁️ دخول — مشاهدة فقط'}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // ---- Loading ----
+    if (isLoadingBranches) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '16px', animation: 'blink 1s infinite' }}>⚡</div>
+                    <p style={{ color: 'var(--text-primary)', fontWeight: '900', fontSize: '1.1rem' }}>جاري تحميل البيانات...</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '6px', fontWeight: '700' }}>الاتصال بالسحابة</p>
+                </div>
+            </div>
+        );
+    }
+
+    // ---- Branch Selector ----
+    if (!currentBranch && allBranches.length > 1) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                <div className="login-glass" style={{ padding: '36px', borderRadius: '24px', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🏪</div>
+                    <h2 style={{ fontWeight: '900', color: 'var(--text-primary)', marginBottom: '6px' }}>اختر الفرع</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginBottom: '20px', fontWeight: '700' }}>مرحباً {userProfile?.name || firebaseUser?.email}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {allBranches.map(b => (
+                            <button key={b.id} onClick={async () => { setCurrentBranch(b); await loadBranchData(b.id); }}
+                                style={{ background: 'rgba(99,165,255,0.15)', border: '1px solid rgba(99,165,255,0.3)', color: 'white', padding: '14px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontSize: '1rem' }}>
+                                🏪 {b.name}
+                            </button>
+                        ))}
+                    </div>
+                    <button onClick={() => { const { signOut } = window.firebaseModules; signOut(window.firebaseAuth); }}
+                        style={{ marginTop: '16px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '700', textDecoration: 'underline' }}>خروج</button>
+                </div>
+            </div>
+        );
+    }
+
+    // ---- Main Layout ----
+    return (
+        <div style={{ display: 'flex', flexDirection: 'row', height: '100dvh', height: '100vh', overflow: 'hidden' }}>
+            {/* Notification */}
+            {notification && (
+                <div className="notification">
+                    <i className={`ph-fill ${notification.type === 'error' ? 'ph-x-circle' : notification.type === 'info' ? 'ph-info' : 'ph-check-circle'}`}
+                        style={{ color: notification.type === 'error' ? 'rgb(252,165,165)' : notification.type === 'info' ? 'rgb(147,197,253)' : 'rgb(110,231,183)', marginLeft: '6px' }}></i>
+                    {notification.msg}
+                </div>
+            )}
+
+            {/* Sidebar */}
+            <aside className="sidebar" style={{ width: '240px', flexShrink: 0, padding: '20px 14px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+                {/* Logo */}
+                <div className="sidebar-logo" style={{ textAlign: 'center', paddingBottom: '18px', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div style={{ fontSize: '2.8rem', filter: 'drop-shadow(0 0 14px rgba(99,165,255,0.6))', marginBottom: '6px' }}>⚡</div>
+                    <div style={{ fontWeight: '900', color: 'var(--accent-blue)', fontSize: '1rem' }}>نظام البرق</div>
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '2px' }}>PRO 8.0 ☁️</div>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
+                        <div className={`cloud-status ${cloudStatus}`}>
+                            <div className="cloud-dot"></div>
+                            {cloudStatus === 'connected' ? '☁️ متصل' : cloudStatus === 'syncing' ? '🔄 مزامنة' : '⚠️ غير متصل'}
+                        </div>
+                    </div>
+                    <div className="viewer-badge" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center', marginTop: '8px' }}>
+                        <i className="ph-fill ph-eye" style={{ fontSize: '0.7rem' }}></i>
+                        مشاهدة فقط
+                    </div>
+                </div>
+
+                {/* Branch info */}
+                {currentBranch && (
+                    <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '8px 12px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1rem' }}>🏪</span>
+                        <div>
+                            <div style={{ fontSize: '0.72rem', fontWeight: '900', color: 'var(--text-primary)' }}>{currentBranch.name}</div>
+                            {currentBranch.city && <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: '700' }}>{currentBranch.city}</div>}
+                        </div>
+                    </div>
+                )}
+
+                {/* Nav */}
+                <nav className="nav-list" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                    {navItems.map(item => (
+                        <button key={item.id} onClick={() => setActiveTab(item.id)} className={`nav-item ${activeTab === item.id ? 'active' : ''}`}>
+                            <i className={`ph-fill ${item.icon}`} style={{ fontSize: '1.15rem', color: activeTab === item.id ? 'white' : 'var(--text-muted)', flexShrink: 0 }}></i>
+                            <span style={{ fontSize: '0.85rem' }}>{item.label}</span>
+                        </button>
+                    ))}
+                </nav>
+
+                {/* Footer */}
+                <div className="sidebar-footer" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {/* User info */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '8px 12px' }}>
+                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '700' }}>مسجل الدخول</div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: '900', color: 'var(--text-secondary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userProfile?.name || firebaseUser?.email}</div>
+                    </div>
+                    {/* Refresh */}
+                    <button onClick={() => currentBranch && loadBranchData(currentBranch.id)}
+                        style={{ background: 'rgba(52,211,153,0.10)', border: '1px solid rgba(52,211,153,0.22)', color: 'rgb(110,231,183)', padding: '8px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', fontSize: '0.72rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <i className="ph-fill ph-arrows-clockwise"></i> تحديث البيانات
+                    </button>
+                    {/* Branch switch */}
+                    {allBranches.length > 1 && (
+                        <button onClick={() => setCurrentBranch(null)}
+                            style={{ background: 'rgba(99,165,255,0.10)', border: '1px solid rgba(99,165,255,0.22)', color: 'rgb(147,197,253)', padding: '8px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', fontSize: '0.72rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                            <i className="ph-fill ph-buildings"></i> تغيير الفرع
+                        </button>
+                    )}
+                    {/* Logout */}
+                    <button onClick={() => { const { signOut } = window.firebaseModules; signOut(window.firebaseAuth); }}
+                        style={{ background: 'rgba(251,113,133,0.12)', border: '1px solid rgba(251,113,133,0.25)', color: 'rgb(252,165,165)', padding: '8px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', fontSize: '0.72rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <i className="ph-fill ph-sign-out"></i> تسجيل الخروج
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main content */}
+            <main id="main" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px', background: 'rgba(4,10,25,0.35)', display: 'flex', flexDirection: 'column', gap: '0' }}>
+                {/* Readonly banner */}
+                <div className="readonly-banner" style={{ marginBottom: '18px' }}>
+                    <i className="ph-fill ph-eye"></i>
+                    أنت في وضع <strong>المشاهدة فقط</strong> — لا يمكنك إضافة أو تعديل أو حذف أي بيانات.
+                    {currentBranch && <span style={{ marginRight: 'auto', opacity: 0.7 }}>فرع: {currentBranch.name}</span>}
+                </div>
+
+                {activeTab === 'dashboard'  && <DashboardView transactions={transactions} expenses={expenses} inventory={inventory} customers={customers} settings={settings} />}
+                {activeTab === 'ledger'     && <LedgerView transactions={transactions} expenses={expenses} />}
+                {activeTab === 'profitloss' && <ProfitLossView transactions={transactions} expenses={expenses} inventory={inventory} />}
+            </main>
+        </div>
+    );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
