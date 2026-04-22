@@ -240,7 +240,9 @@
             .nav-item { flex-direction: column !important; flex-shrink: 0 !important; padding: 5px 10px !important; gap: 2px !important; min-width: 56px !important; height: 54px !important; border-radius: 12px !important; margin: 0 2px !important; justify-content: center !important; font-size: 0.45rem !important; border: none !important; }
             .nav-item span { font-size: 0.45rem !important; text-align: center !important; white-space: nowrap !important; }
             .nav-item i { font-size: 1.15rem !important; }
-            main#main { padding: 10px !important; padding-bottom: 80px !important; height: calc(100dvh - 0px) !important; }
+            main#main { padding: 10px !important; padding-bottom: 80px !important; height: calc(100dvh - 0px) !important; overflow-y: auto !important; overflow-x: hidden !important; }
+            .stat-card { min-width: 0 !important; }
+            .stat-card .val { font-size: 1.3rem !important; }
         }
     </style>
 </head>
@@ -276,8 +278,9 @@ let _setNotif = null;
 const notify = (msg, type = 'success') => { if (_setNotif) _setNotif({ msg, type }); };
 
 // ==================== Month Accordion ====================
+const PAGE_SIZE = 50;
 const MonthAccordion = ({ label, count, total, children, accent = 'blue', defaultOpen }) => {
-    const [open, setOpen] = useState(!!defaultOpen);
+    const [open, setOpen] = useState(false); // always start closed for performance
     const colors = {
         blue:    { bg:'rgba(99,165,255,0.08)',  border:'rgba(99,165,255,0.28)',  text:'rgb(147,197,253)'  },
         emerald: { bg:'rgba(52,211,153,0.08)',  border:'rgba(52,211,153,0.28)', text:'rgb(110,231,183)'  },
@@ -409,7 +412,7 @@ const DashboardView = ({ transactions, expenses, inventory, customers, settings 
             </div>
 
             {/* Chart + Today summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
                 {/* Bar Chart */}
                 <div className="glass-card" style={{ padding: '20px' }}>
                     <h3 style={{ fontWeight: '900', color: 'var(--text-primary)', marginBottom: '16px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -455,7 +458,7 @@ const DashboardView = ({ transactions, expenses, inventory, customers, settings 
             </div>
 
             {/* Bottom: Top items + Alerts */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
                 {/* Top items */}
                 <div className="glass-card" style={{ padding: '20px' }}>
                     <h3 style={{ fontWeight: '900', color: 'var(--text-primary)', marginBottom: '14px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -512,9 +515,100 @@ const DashboardView = ({ transactions, expenses, inventory, customers, settings 
     );
 };
 
+// ==================== Paginated Table ====================
+const PaginatedTable = ({ items, groupCash, groupCard, groupProfit, groupTotal, groupLabel }) => {
+    const [page, setPage] = useState(1);
+    const pageSize = 50;
+    const totalPages = Math.ceil(items.length / pageSize);
+    const visible = items.slice(0, page * pageSize);
+    const hasMore = page < totalPages;
+
+    return (
+        <div style={{ overflowX: 'auto' }}>
+            <table style={{ minWidth: '820px' }}>
+                <thead>
+                    <tr>
+                        <th style={{ textAlign: 'right' }}>التاريخ</th>
+                        <th style={{ textAlign: 'center' }}>النوع</th>
+                        <th style={{ textAlign: 'right' }}>التفاصيل</th>
+                        <th style={{ textAlign: 'center' }}>الدفع</th>
+                        <th style={{ textAlign: 'center' }}>🟢 كاش</th>
+                        <th style={{ textAlign: 'center' }}>🔵 شبكة</th>
+                        <th style={{ textAlign: 'center' }}>شراء</th>
+                        <th style={{ textAlign: 'center' }}>بيع</th>
+                        <th style={{ textAlign: 'center' }}>رجيع</th>
+                        <th style={{ textAlign: 'center' }}>الربح</th>
+                        <th style={{ textAlign: 'center' }}>الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {visible.map(t => {
+                        const cashVal   = t.payMethod === 'cash' ? Number(t.totalPrice||0) : t.payMethod === 'split' ? Number(t.cashPaid||0) : 0;
+                        const cardVal   = t.payMethod === 'card' ? Number(t.totalPrice||0) : t.payMethod === 'split' ? Number(t.cardPaid||0) : 0;
+                        const buyPrice  = Number(t.buyPrice||0);
+                        const sellPrice = Number(t.sellPrice||0);
+                        const qty       = Number(t.qty||1);
+                        const scrap     = Number(t.scrapValue||0);
+                        const profit    = (sellPrice - buyPrice) * qty + scrap;
+                        const total     = sellPrice * qty + scrap;
+                        const isReturn  = t.status === 'returned';
+                        const payLabel  = t.payMethod === 'cash' ? 'نقدي' : t.payMethod === 'card' ? 'شبكة' : t.payMethod === 'split' ? 'متعدد' : t.payMethod === 'deferred' ? 'آجل' : '-';
+                        const payColor  = t.payMethod==='cash' ? {bg:'rgba(52,211,153,0.12)',color:'rgb(110,231,183)'} : t.payMethod==='card' ? {bg:'rgba(99,165,255,0.12)',color:'rgb(147,197,253)'} : t.payMethod==='split' ? {bg:'rgba(167,139,250,0.12)',color:'rgb(196,181,253)'} : {bg:'rgba(255,255,255,0.06)',color:'var(--text-muted)'};
+                        const typeLabel = isReturn ? 'رجيع' : t.type === 'sale' ? 'بيع' : 'شراء';
+                        const typeBg    = isReturn ? {bg:'rgba(251,113,133,0.12)',color:'rgb(252,165,165)'} : {bg:'rgba(52,211,153,0.12)',color:'rgb(110,231,183)'};
+                        return (
+                            <tr key={t.id} style={{ opacity: isReturn ? 0.65 : 1 }}>
+                                <td style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{t.date?.split(',')[0] || '-'}</td>
+                                <td style={{ textAlign: 'center' }}>
+                                    <span className="badge" style={{ background: typeBg.bg, color: typeBg.color }}>{typeLabel}</span>
+                                </td>
+                                <td>
+                                    <div style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '0.78rem' }}>{t.itemName || '-'}</div>
+                                    {t.customerName && <div style={{ fontSize: '0.63rem', color: 'var(--text-muted)', marginTop: '1px' }}>{t.customerName}</div>}
+                                    {qty > 1 && <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>× {qty}</div>}
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
+                                    <span className="badge" style={{ background: payColor.bg, color: payColor.color }}>{payLabel}</span>
+                                </td>
+                                <td style={{ textAlign: 'center', fontWeight: '700', color: 'rgb(110,231,183)', fontFamily: 'monospace' }}>{cashVal > 0 ? cashVal.toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
+                                <td style={{ textAlign: 'center', fontWeight: '700', color: 'rgb(147,197,253)', fontFamily: 'monospace' }}>{cardVal > 0 ? cardVal.toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
+                                <td style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{buyPrice > 0 ? (buyPrice * qty).toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
+                                <td style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{sellPrice > 0 ? (sellPrice * qty).toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
+                                <td style={{ textAlign: 'center', fontSize: '0.75rem', color: 'rgb(196,181,253)', fontFamily: 'monospace' }}>{scrap > 0 ? scrap.toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
+                                <td style={{ textAlign: 'center', fontWeight: '700', fontFamily: 'monospace', color: profit >= 0 ? 'rgb(110,231,183)' : 'rgb(252,165,165)' }}>{profit !== 0 ? profit.toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
+                                <td style={{ textAlign: 'center', fontWeight: '900', color: 'var(--text-primary)', fontFamily: 'monospace' }}>{total.toLocaleString()}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+                <tfoot>
+                    {hasMore && (
+                        <tr>
+                            <td colSpan="11" style={{ padding: '10px', textAlign: 'center' }}>
+                                <button onClick={() => setPage(p => p + 1)}
+                                    style={{ background: 'rgba(99,165,255,0.15)', border: '1px solid rgba(99,165,255,0.3)', color: 'rgb(147,197,253)', padding: '7px 20px', borderRadius: '10px', fontWeight: '900', cursor: 'pointer', fontSize: '0.78rem' }}>
+                                    ⬇ تحميل المزيد ({visible.length} / {items.length})
+                                </button>
+                            </td>
+                        </tr>
+                    )}
+                    <tr style={{ background: 'rgba(99,165,255,0.06)', borderTop: '2px solid rgba(99,165,255,0.2)' }}>
+                        <td colSpan="4" style={{ padding: '10px 16px', fontWeight: '900', color: 'rgb(147,197,253)', fontSize: '0.78rem' }}>إجمالي {groupLabel}</td>
+                        <td style={{ textAlign: 'center', fontWeight: '900', color: 'rgb(110,231,183)', fontFamily: 'monospace' }}>{groupCash > 0 ? groupCash.toLocaleString() : '—'}</td>
+                        <td style={{ textAlign: 'center', fontWeight: '900', color: 'rgb(147,197,253)', fontFamily: 'monospace' }}>{groupCard > 0 ? groupCard.toLocaleString() : '—'}</td>
+                        <td colSpan="3"></td>
+                        <td style={{ textAlign: 'center', fontWeight: '900', color: groupProfit >= 0 ? 'rgb(110,231,183)' : 'rgb(252,165,165)', fontFamily: 'monospace' }}>{groupProfit.toLocaleString()}</td>
+                        <td style={{ textAlign: 'center', fontWeight: '900', color: 'var(--text-primary)', fontFamily: 'monospace' }}>{groupTotal.toLocaleString()}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    );
+};
+
 // ==================== Ledger View ====================
 const LedgerView = ({ transactions, expenses }) => {
-    const [timeFilter, setTimeFilter] = useState('month');
+    const [timeFilter, setTimeFilter] = useState('day');
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
     const [search, setSearch] = useState('');
@@ -590,7 +684,7 @@ const LedgerView = ({ transactions, expenses }) => {
     const totalScrap   = filtered.reduce((a, t) => a + Number(t.scrapValue || 0), 0);
     // صافي الأرباح = أرباح + رجيع
     const netProfit    = totalProfit + totalScrap;
-    // الإجمالي الصافي = المبيعات + رجيع
+    // الإجمالي الصافي = المبيعات + الرجيع
     const grossTotal   = totalSales + totalScrap;
 
     return (
@@ -783,46 +877,21 @@ const LedgerView = ({ transactions, expenses }) => {
                     <p style={{ fontWeight: '700' }}>لا توجد مبيعات</p>
                 </div>
             ) : groups.map(group => {
-                const groupTotal = group.items.reduce((a, t) => a + Number(t.totalPrice || 0), 0);
+                const groupTotal  = group.items.reduce((a, t) => a + (Number(t.sellPrice||0) * Number(t.qty||1)) + Number(t.scrapValue||0), 0);
+                const groupCash   = group.items.reduce((a, t) => a + (t.payMethod==='cash' ? Number(t.totalPrice||0) : t.payMethod==='split' ? Number(t.cashPaid||0) : 0), 0);
+                const groupCard   = group.items.reduce((a, t) => a + (t.payMethod==='card' ? Number(t.totalPrice||0) : t.payMethod==='split' ? Number(t.cardPaid||0) : 0), 0);
+                const groupProfit = group.items.reduce((a, t) => a + ((Number(t.sellPrice||0) - Number(t.buyPrice||0)) * Number(t.qty||1)) + Number(t.scrapValue||0), 0);
+
                 return (
-                    <MonthAccordion key={group.key} label={group.label} count={group.items.length} total={groupTotal} accent="blue" defaultOpen={groups.indexOf(group) === 0}>
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ minWidth: '600px' }}>
-                                <thead>
-                                    <tr>
-                                        <th>التاريخ</th>
-                                        <th>طريقة الدفع</th>
-                                        <th>الصنف</th>
-                                        <th style={{ textAlign: 'center' }}>🟢 كاش</th>
-                                        <th style={{ textAlign: 'center' }}>🔵 شبكة</th>
-                                        <th style={{ textAlign: 'center' }}>الإجمالي</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {[...group.items].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).map(t => {
-                                        const cashVal = t.payMethod === 'cash' ? Number(t.totalPrice || 0) : (t.payMethod === 'split' ? Number(t.cashPaid || 0) : 0);
-                                        const cardVal = t.payMethod === 'card' ? Number(t.totalPrice || 0) : (t.payMethod === 'split' ? Number(t.cardPaid || 0) : 0);
-                                        const total   = Number(t.totalPrice || 0);
-                                        const payLabel = t.payMethod === 'cash' ? 'نقدي' : t.payMethod === 'card' ? 'شبكة' : t.payMethod === 'split' ? 'متعدد' : t.payMethod === 'deferred' ? 'آجل' : '-';
-                                        return (
-                                            <tr key={t.id}>
-                                                <td style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.date?.split(',')[0] || '-'}</td>
-                                                <td>
-                                                    <span className="badge" style={{ background: t.payMethod==='cash' ? 'rgba(52,211,153,0.12)' : t.payMethod==='card' ? 'rgba(99,165,255,0.12)' : t.payMethod==='split' ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.06)', color: t.payMethod==='cash' ? 'rgb(110,231,183)' : t.payMethod==='card' ? 'rgb(147,197,253)' : t.payMethod==='split' ? 'rgb(196,181,253)' : 'var(--text-muted)', border: '1px solid transparent' }}>{payLabel}</span>
-                                                </td>
-                                                <td>
-                                                    <div style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '0.8rem' }}>{t.itemName || '-'}</div>
-                                                    {t.customerName && <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{t.customerName}</div>}
-                                                </td>
-                                                <td style={{ textAlign: 'center', fontWeight: '700', color: 'rgb(110,231,183)' }}>{cashVal > 0 ? cashVal.toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
-                                                <td style={{ textAlign: 'center', fontWeight: '700', color: 'rgb(147,197,253)' }}>{cardVal > 0 ? cardVal.toLocaleString() : <span style={{ opacity: 0.2 }}>—</span>}</td>
-                                                <td style={{ textAlign: 'center', fontWeight: '900', color: 'var(--text-primary)' }}>{total.toLocaleString()}</td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                    <MonthAccordion key={group.key} label={group.label} count={group.items.length} total={groupTotal} accent="blue" defaultOpen={false}>
+                        <PaginatedTable
+                            items={[...group.items].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))}
+                            groupCash={groupCash}
+                            groupCard={groupCard}
+                            groupProfit={groupProfit}
+                            groupTotal={groupTotal}
+                            groupLabel={group.label}
+                        />
                     </MonthAccordion>
                 );
             })}
