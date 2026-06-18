@@ -14,27 +14,15 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-    <script type="text/javascript">
-      /* ⚠️ تحقق من بروتوكول file:// */
-      (function() {
-        if (window.location.protocol === 'file:') {
-          window.addEventListener('DOMContentLoaded', function() {
-            var root = document.getElementById('root');
-            if (root) root.innerHTML = '<div style="font-family:Cairo,Arial;direction:rtl;text-align:center;padding:60px 20px;background:#050d1a;min-height:100vh;display:flex;align-items:center;justify-content:center"><div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:40px;max-width:540px"><div style="font-size:48px;margin-bottom:16px">⚠️</div><h2 style="color:#fff;font-size:22px;margin-bottom:12px;font-weight:900">يجب فتح النظام عبر خادم محلي</h2><p style="color:rgba(255,255,255,0.7);font-size:14px;line-height:2">لا يمكن تشغيل النظام مباشرة من الملف بسبب قيود أمان المتصفح.</p><div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:20px;margin:20px 0;text-align:right"><p style="color:#7dd3fc;font-weight:bold;font-size:14px;margin-bottom:10px">✅ الطريقة الأسهل — VS Code Live Server:</p><p style="color:rgba(255,255,255,0.65);font-size:13px">افتح الملف في VS Code ← كليك يمين على الملف ← Open with Live Server</p></div><div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:20px;text-align:right"><p style="color:#86efac;font-weight:bold;font-size:14px;margin-bottom:10px">✅ أو عبر Python:</p><p style="color:rgba(255,255,255,0.65);font-size:13px">افتح CMD في مجلد الملف واكتب:</p><code style="display:block;background:rgba(0,0,0,0.5);padding:8px;border-radius:8px;color:#fde68a;margin:8px 0;font-size:13px">python -m http.server 8080</code><p style="color:rgba(255,255,255,0.65);font-size:13px">ثم افتح: <code style="color:#fde68a">http://localhost:8080</code></p></div></div></div>';
-          });
-        }
-      })();
-    </script>
     <!-- Firebase SDK v10 -->
     <script>
-      /* Firebase loader - uses dynamic import() to avoid Babel/module conflicts */
       (async function() {
         try {
           const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
@@ -43,7 +31,6 @@
           const { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
                  createUserWithEmailAndPassword, sendPasswordResetEmail }
             = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-
           const app  = initializeApp({
             apiKey:"AIzaSyClliyCsXUV0sq89y6BfoYNUWCMBB8aFH8",
             authDomain:"bark-44676.firebaseapp.com",
@@ -4639,11 +4626,14 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
                 })();
 
-                const [form, setForm] = React.useState({ title:"", amount:"", qty:1, method:"cash", recipient:"", date: new Date().toISOString().split('T')[0] });
+                const emptyForm = { title:"", amount:"", qty:1, method:"cash", recipient:"", paid:true, date: new Date().toISOString().split('T')[0] };
+                const [form, setForm] = React.useState(emptyForm);
                 const [showSug, setShowSug] = React.useState(false);
+
                 // فلاتر
                 const [fName,   setFName]   = React.useState("all");
                 const [fMethod, setFMethod] = React.useState("all");
+                const [fPaid,   setFPaid]   = React.useState("all");
                 const [fFrom,   setFFrom]   = React.useState("");
                 const [fTo,     setFTo]     = React.useState("");
                 const [fSearch, setFSearch] = React.useState("");
@@ -4651,11 +4641,19 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                 const addExpense = (e) => {
                     e.preventDefault();
                     if(!form.title || !form.amount) return notify("يرجى تعبئة البيانات","error");
-                    const newExpense = { ...form, id:Date.now(), timestamp:Date.now(), amount:Number(form.amount), qty:Number(form.qty)||1, type:'expense' };
+                    const _nd=new Date(); const _df=`${_nd.getFullYear()}/${String(_nd.getMonth()+1).padStart(2,'0')}/${String(_nd.getDate()).padStart(2,'0')}`;
+                    const newExpense = { ...form, id:Date.now(), timestamp:Date.now(), amount:Number(form.amount), qty:Number(form.qty)||1, paid: form.paid !== false, date: form.date || _df, type:'expense' };
                     setExpenses([newExpense, ...expenses]);
-                    saveItemToCloud('expenses', newExpense); // ☁️ حفظ فوري
-                    setForm({ title:"", amount:"", qty:1, method:"cash", recipient:"", date: new Date().toISOString().split('T')[0] });
+                    saveItemToCloud('expenses', newExpense);
+                    setForm(emptyForm);
                     notify("✓ تم تسجيل المصروف");
+                };
+
+                const togglePaid = (ex) => {
+                    const updated = {...ex, paid: !ex.paid};
+                    setExpenses(expenses.map(e=>e.id===ex.id ? updated : e));
+                    saveItemToCloud('expenses', updated);
+                    notify(updated.paid ? '✅ تم تحديده كمسدد' : '⏳ تم تحديده كغير مسدد');
                 };
 
                 const usersList = useMemo(()=>[...new Set(expenses.map(e=>e.recipient).filter(Boolean))],[expenses]);
@@ -4665,32 +4663,32 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                     return expenses.filter(ex=>{
                         if(fName!=="all" && ex.recipient!==fName) return false;
                         if(fMethod!=="all" && ex.method!==fMethod) return false;
+                        if(fPaid==="paid"   && ex.paid===false)  return false;
+                        if(fPaid==="unpaid" && ex.paid!==false)  return false;
                         if(fSearch && !ex.title?.includes(fSearch) && !ex.recipient?.includes(fSearch)) return false;
                         const exDate = ex.date || (ex.timestamp ? new Date(ex.timestamp).toISOString().split("T")[0] : "");
                         if(fFrom && exDate < fFrom) return false;
                         if(fTo   && exDate > fTo)   return false;
                         return true;
                     });
-                },[expenses,fName,fMethod,fFrom,fTo,fSearch]);
+                },[expenses,fName,fMethod,fPaid,fFrom,fTo,fSearch]);
 
-                const totalAll  = filtered.reduce((a,b)=>a+Number(b.amount)*(Number(b.qty)||1),0);
-                const totalCash = filtered.filter(e=>e.method==="cash").reduce((a,b)=>a+Number(b.amount)*(Number(b.qty)||1),0);
-                const totalCard = filtered.filter(e=>e.method==="card").reduce((a,b)=>a+Number(b.amount)*(Number(b.qty)||1),0);
-                const totalQtyAll = filtered.reduce((a,b)=>a+(Number(b.qty)||1),0);
-                const totalHidden = filtered.filter(e=>e.viewerHidden).length;
-                const hasFilter = fName!=="all"||fMethod!=="all"||fFrom||fTo||fSearch;
+                const totalAll   = filtered.reduce((a,b)=>a+Number(b.amount),0);
+                const totalPaid  = filtered.filter(e=>e.paid!==false).reduce((a,b)=>a+Number(b.amount),0);
+                const totalUnpaid= filtered.filter(e=>e.paid===false).reduce((a,b)=>a+Number(b.amount),0);
+                const totalCashAmt = filtered.filter(e=>e.method==='cash').reduce((a,b)=>a+Number(b.amount),0);
+                const totalCardAmt = filtered.filter(e=>e.method==='card').reduce((a,b)=>a+Number(b.amount),0);
+                const totalQtyAll= filtered.reduce((a,b)=>a+(Number(b.qty)||1),0);
+                const totalHidden= filtered.filter(e=>e.viewerHidden).length;
+                const hasFilter  = fName!=="all"||fMethod!=="all"||fPaid!=="all"||fFrom||fTo||fSearch;
 
                 const months = groupByMonth(filtered, e => e.timestamp || new Date(e.date).getTime());
 
-                // Card style helper - neumorphism-aware
-                const cardStyle = {
-                    background:'var(--card-bg-1)',
-                    border:'1px solid var(--card-border-1)',
-                };
+                const cardStyle = { background:'var(--card-bg-1)', border:'1px solid var(--card-border-1)' };
 
                 return (
                     <div className="space-y-4">
-                        {/* — العنوان — */}
+                        {/* العنوان */}
                         <div className="flex justify-between items-center">
                             <h2 className="text-xl font-black flex items-center gap-2" style={{color:'var(--text-primary)'}}>
                                 <span className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background:'rgba(220,38,38,0.15)',border:'1px solid rgba(220,38,38,0.25)'}}>
@@ -4702,59 +4700,56 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                 <span className="text-xs font-bold px-3 py-1 rounded-full" style={{background:'rgba(0,0,0,0.06)',color:'var(--text-muted)'}}>
                                     {filtered.length} سجل
                                 </span>
-                                {/* ✅ طباعة المصروفات */}
                                 <button onClick={() => {
                                     const dateLabel = fFrom && fTo ? `من ${fFrom} إلى ${fTo}` : 'كل الفترات';
-                                    const printWin = window.open('','_blank','width=800,height=600');
-                                    printWin.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير المصروفات</title><style>body{font-family:Arial,sans-serif;padding:20px;direction:rtl}h2{text-align:center;border-bottom:3px solid #0f172a;padding-bottom:10px;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}th,td{border:1px solid #cbd5e1;padding:7px 10px;text-align:right}thead{background:#0f172a;color:white}tfoot{background:#f1f5f9;font-weight:900}tr:nth-child(even){background:#f8fafc}.meta{text-align:center;color:#64748b;font-size:12px;margin:4px 0 12px}</style></head><body><h2>${settings.shopName} - تقرير المصروفات</h2><p class="meta">الفترة: ${dateLabel} | ${filtered.length} مصروف | الإجمالي: ${totalAll.toLocaleString()} ريال</p><table><thead><tr><th>#</th><th>البيان</th><th>المستلم</th><th>التاريخ</th><th style="text-align:center">الطريقة</th><th style="text-align:center">العدد</th><th style="text-align:center">المبلغ/وحدة</th><th style="text-align:center">الإجمالي</th></tr></thead><tbody>${filtered.map((ex,i)=>`<tr><td>${i+1}</td><td>${ex.title||'—'}</td><td>${ex.recipient||'—'}</td><td>${ex.date||'—'}</td><td style="text-align:center">${ex.method==='cash'?'نقدي':'شبكة'}</td><td style="text-align:center;font-weight:900">${(ex.qty||1).toLocaleString()}</td><td style="text-align:center">${Number(ex.amount).toLocaleString()}</td><td style="text-align:center;font-weight:900">${(Number(ex.amount)*(ex.qty||1)).toLocaleString()}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="4">الإجمالي</td><td style="text-align:center">نقدي: ${totalCash.toLocaleString()}</td><td style="text-align:center">${totalQtyAll.toLocaleString()} قطعة</td><td></td><td style="text-align:center">${totalAll.toLocaleString()} ريال</td></tr></tfoot></table></body></html>`);
+                                    const printWin = window.open('','_blank','width=860,height=620');
+                                    printWin.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير المصروفات</title><style>body{font-family:Arial,sans-serif;padding:20px;direction:rtl}h2{text-align:center;border-bottom:3px solid #0f172a;padding-bottom:10px;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}th,td{border:1px solid #cbd5e1;padding:7px 10px;text-align:right}thead{background:#0f172a;color:white}tfoot{background:#f1f5f9;font-weight:900}tr:nth-child(even){background:#f8fafc}.meta{text-align:center;color:#64748b;font-size:12px;margin:4px 0 12px}.paid{color:#16a34a;font-weight:900}.unpaid{color:#dc2626;font-weight:900}</style></head><body><h2>${settings.shopName} - تقرير المصروفات</h2><p class="meta">الفترة: ${dateLabel} | ${filtered.length} مصروف | الإجمالي: ${totalAll.toLocaleString()} ريال | مسدد: ${totalPaid.toLocaleString()} ر | غير مسدد: ${totalUnpaid.toLocaleString()} ر</p><table><thead><tr><th>#</th><th>التاريخ</th><th>البيان</th><th>المستلم</th><th>الطريقة</th><th style="text-align:center">العدد</th><th style="text-align:center">المبلغ</th><th style="text-align:center">الحالة</th></tr></thead><tbody>${filtered.map((ex,i)=>`<tr><td>${i+1}</td><td>${ex.date||'—'}</td><td>${ex.title||'—'}</td><td>${ex.recipient||'—'}</td><td style="text-align:center">${ex.method==='cash'?'نقدي':'شبكة'}</td><td style="text-align:center;font-weight:900">${(ex.qty||1)}</td><td style="text-align:center;font-weight:900">${Number(ex.amount).toLocaleString()}</td><td style="text-align:center" class="${ex.paid!==false?'paid':'unpaid'}">${ex.paid!==false?'✅ مسدد':'⏳ غير مسدد'}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="6">الإجمالي</td><td style="text-align:center">${totalAll.toLocaleString()} ريال</td><td style="text-align:center">مسدد: ${totalPaid.toLocaleString()} | غير مسدد: ${totalUnpaid.toLocaleString()}</td></tr></tfoot></table></body></html>`);
                                     printWin.document.close(); printWin.focus();
                                     setTimeout(() => { printWin.print(); }, 400);
-                                    notify('✅ جاري فتح نافذة الطباعة...');
                                 }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white hover:opacity-90 transition-all" style={{background:'rgba(17,24,39,0.8)',border:'1px solid rgba(255,255,255,0.12)'}}>
-                                    <i className="ph ph-printer"></i> طباعة المصروفات
+                                    <i className="ph ph-printer"></i> طباعة
                                 </button>
                             </div>
                         </div>
 
-                        {/* — بطاقات الإحصاء — */}
-                        <div className="grid grid-cols-5 gap-3">
+                        {/* بطاقات الإحصاء */}
+                        <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
                             {[
-                                { label:'إجمالي المصروفات', val:totalAll,  icon:'ph-arrows-down-up',
-                                  bg:'rgba(17,24,39,0.06)', border:'rgba(17,24,39,0.12)', text:'var(--text-primary)', accent:'#111827' },
-                                { label:'نقدي',             val:totalCash, icon:'ph-money',
-                                  bg:'rgba(22,163,74,0.08)', border:'rgba(22,163,74,0.18)', text:'#15803d', accent:'#16a34a' },
-                                { label:'شبكة',             val:totalCard, icon:'ph-credit-card',
-                                  bg:'rgba(37,99,235,0.08)', border:'rgba(37,99,235,0.18)', text:'#1d4ed8', accent:'#2563eb' },
-                                { label:'مخفية عن المشاهد', val:totalHidden, icon:'ph-eye-slash', isCount:true,
-                                  bg:'rgba(234,179,8,0.08)', border:'rgba(234,179,8,0.22)', text:'#a16207', accent:'#d97706' },
-                                { label:'إجمالي العدد', val:totalQtyAll, icon:'ph-package', isCount:true,
-                                  bg:'rgba(124,58,237,0.08)', border:'rgba(124,58,237,0.22)', text:'#6d28d9', accent:'#7c3aed' },
+                                { label:'إجمالي المصروفات', val:totalAll,     icon:'ph-arrows-down-up', bg:'rgba(17,24,39,0.06)',   border:'rgba(17,24,39,0.12)',   text:'var(--text-primary)', accent:'#111827', money:true },
+                                { label:'مسدد',              val:totalPaid,    icon:'ph-check-circle',  bg:'rgba(22,163,74,0.08)',  border:'rgba(22,163,74,0.18)', text:'#15803d', accent:'#16a34a', money:true },
+                                { label:'غير مسدد',          val:totalUnpaid,  icon:'ph-clock',         bg:'rgba(220,38,38,0.08)',  border:'rgba(220,38,38,0.18)', text:'#dc2626', accent:'#ef4444', money:true },
+                                { label:'نقدي',              val:totalCashAmt, icon:'ph-money',         bg:'rgba(52,211,153,0.08)', border:'rgba(52,211,153,0.22)',text:'#047857', accent:'#10b981', money:true },
+                                { label:'شبكة',              val:totalCardAmt, icon:'ph-credit-card',   bg:'rgba(99,165,255,0.08)', border:'rgba(99,165,255,0.22)',text:'#1d4ed8', accent:'#3b82f6', money:true },
+                                { label:'إجمالي العدد',      val:totalQtyAll,  icon:'ph-package',       bg:'rgba(124,58,237,0.08)', border:'rgba(124,58,237,0.22)',text:'#6d28d9', accent:'#7c3aed', money:false },
+                                { label:'مخفية عن المشاهد',  val:totalHidden,  icon:'ph-eye-slash',     bg:'rgba(234,179,8,0.08)',  border:'rgba(234,179,8,0.22)', text:'#a16207', accent:'#d97706', money:false },
                             ].map(s=>(
-                                <div key={s.label} className="rounded-2xl p-4 flex items-center gap-3 transition-all" style={{...cardStyle, background:s.bg, border:`1px solid ${s.border}`}}>
+                                <div key={s.label} className="rounded-2xl p-4 flex items-center gap-3" style={{background:s.bg,border:`1px solid ${s.border}`}}>
                                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:`${s.accent}18`,border:`1px solid ${s.accent}28`}}>
                                         <i className={`ph-fill ${s.icon} text-lg`} style={{color:s.accent}}></i>
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-[11px] font-bold truncate" style={{color:s.text,opacity:.7}}>{s.label}</p>
                                         <p className="text-lg font-black leading-tight" style={{color:s.text}}>
-                                            {s.val.toLocaleString()} <span className="text-[10px] font-normal opacity-50">{s.isCount ? 'مصروف' : 'ريال'}</span>
+                                            {s.val.toLocaleString()} <span className="text-[10px] font-normal opacity-50">{s.money?'ريال':'قطعة'}</span>
                                         </p>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        {/* — نموذج الإضافة — */}
+                        {/* نموذج الإضافة */}
                         <div className="rounded-2xl p-5" style={cardStyle}>
                             <h3 className="text-sm font-black mb-4 flex items-center gap-2" style={{color:'var(--text-primary)'}}>
                                 <i className="ph-fill ph-plus-circle" style={{color:'#2563eb'}}></i>
                                 تسجيل مصروف جديد
                             </h3>
-                            <form onSubmit={addExpense} className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
+                            <form onSubmit={addExpense} className="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
+                                {/* البيان */}
                                 <div className="md:col-span-2">
                                     <label className="input-label">بيان المصروف</label>
                                     <input type="text" className="input-field" placeholder="إيجار، كهرباء، رواتب..." value={form.title} onChange={e=>setForm({...form,title:e.target.value})} />
                                 </div>
+                                {/* المستلم */}
                                 <div className="relative">
                                     <label className="input-label">المستلم</label>
                                     <input type="text" className="input-field" placeholder="اسم الشخص" value={form.recipient}
@@ -4764,7 +4759,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                     {showSug && suggestions.length>0 && (
                                         <div className="absolute z-30 w-full mt-1 rounded-xl max-h-40 overflow-y-auto custom-scroll" style={{background:'#1a2438',border:'1px solid rgba(99,165,255,0.3)',boxShadow:'0 10px 28px rgba(0,0,0,0.4)',top:'100%'}}>
                                             {suggestions.map(u=>(
-                                                <div key={u} className="px-3 py-2.5 cursor-pointer text-sm font-bold transition-colors"
+                                                <div key={u} className="px-3 py-2.5 cursor-pointer text-sm font-bold"
                                                     style={{color:'rgba(255,255,255,0.85)',borderBottom:'1px solid rgba(255,255,255,0.06)'}}
                                                     onMouseEnter={e=>e.currentTarget.style.background='rgba(37,99,235,0.25)'}
                                                     onMouseLeave={e=>e.currentTarget.style.background='transparent'}
@@ -4775,21 +4770,44 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                         </div>
                                     )}
                                 </div>
+                                {/* التاريخ */}
+                                <div>
+                                    <label className="input-label">التاريخ</label>
+                                    <input type="date" className="input-field" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} />
+                                </div>
+                                {/* المبلغ */}
                                 <div>
                                     <label className="input-label">المبلغ</label>
-                                    <input type="number" className="input-field text-center font-black" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} />
+                                    <input type="number" className="input-field text-center font-black" placeholder="0" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} />
                                 </div>
+                                {/* العدد */}
                                 <div>
                                     <label className="input-label">العدد</label>
                                     <input type="number" className="input-field text-center font-black" min="1" value={form.qty} onChange={e=>setForm({...form,qty:Number(e.target.value)||1})} />
                                 </div>
+                                {/* الطريقة */}
                                 <div>
-                                    <label className="input-label">الطريقة</label>
+                                    <label className="input-label">طريقة الدفع</label>
                                     <div className="flex gap-2 h-[46px]">
                                         {[{v:'cash',l:'نقدي',ic:'ph-money',clr:'#16a34a'},{v:'card',l:'شبكة',ic:'ph-credit-card',clr:'#2563eb'}].map(m=>(
                                             <button key={m.v} type="button" onClick={()=>setForm({...form,method:m.v})}
                                                 className="flex-1 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-0.5 transition-all"
                                                 style={form.method===m.v
+                                                    ? {background:`${m.clr}18`,border:`1.5px solid ${m.clr}40`,color:m.clr}
+                                                    : {background:'rgba(0,0,0,0.04)',border:'1.5px solid rgba(0,0,0,0.08)',color:'var(--text-muted)'}}>
+                                                <i className={`ph-fill ${m.ic} text-base`}></i>{m.l}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                {/* الحالة */}
+                                <div>
+                                    <label className="input-label">الحالة</label>
+                                    <div className="flex gap-2 h-[46px]">
+                                        {[{v:true,l:'مسدد',ic:'ph-check-circle',clr:'#16a34a'},{v:false,l:'غير مسدد',ic:'ph-clock',clr:'#ef4444'}].map(m=>(
+                                            <button key={String(m.v)} type="button" onClick={()=>setForm({...form,paid:m.v})}
+                                                className="flex-1 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-0.5 transition-all"
+                                                style={form.paid===m.v
                                                     ? {background:`${m.clr}18`,border:`1.5px solid ${m.clr}40`,color:m.clr}
                                                     : {background:'rgba(0,0,0,0.04)',border:'1.5px solid rgba(0,0,0,0.08)',color:'var(--text-muted)'}}>
                                                 <i className={`ph-fill ${m.ic} text-base`}></i>{m.l}
@@ -4804,7 +4822,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                             </form>
                         </div>
 
-                        {/* — شريط الفلاتر — */}
+                        {/* شريط الفلاتر */}
                         <div className="rounded-2xl p-4" style={cardStyle}>
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-sm font-black flex items-center gap-2" style={{color:'var(--text-primary)'}}>
@@ -4812,67 +4830,75 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                     تصفية وبحث
                                 </span>
                                 {hasFilter && (
-                                    <button onClick={()=>{setFName("all");setFMethod("all");setFFrom("");setFTo("");setFSearch("");}}
+                                    <button onClick={()=>{setFName("all");setFMethod("all");setFPaid("all");setFFrom("");setFTo("");setFSearch("");}}
                                         className="text-xs font-bold px-3 py-1 rounded-lg"
                                         style={{background:'rgba(220,38,38,0.1)',color:'#dc2626',border:'1px solid rgba(220,38,38,0.2)'}}>
-                                        <i className="ph ph-x ml-0.5"></i> مسح
+                                        <i className="ph ph-x ml-0.5"></i> مسح الكل
                                     </button>
                                 )}
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                                 {/* بحث */}
-                                <div className="relative">
+                                <div className="relative md:col-span-2">
                                     <i className="ph ph-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{color:'var(--text-muted)'}}></i>
-                                    <input type="text" placeholder="بحث..." className="input-field pr-8 text-sm" value={fSearch} onChange={e=>setFSearch(e.target.value)} />
+                                    <input type="text" placeholder="بحث في البيان أو المستلم..." className="input-field pr-8 text-sm" value={fSearch} onChange={e=>setFSearch(e.target.value)} />
                                 </div>
-                                {/* الاسم */}
+                                {/* المستلم */}
                                 <select className="input-field text-sm" value={fName} onChange={e=>setFName(e.target.value)}>
                                     <option value="all">كل الأشخاص</option>
                                     {usersList.map(u=><option key={u} value={u}>{u}</option>)}
                                 </select>
                                 {/* طريقة الدفع */}
                                 <div className="flex gap-1.5">
-                                    {[
-                                        {v:"all", l:"الكل"},
-                                        {v:"cash",l:"نقدي",  clr:"#16a34a"},
-                                        {v:"card",l:"شبكة",  clr:"#2563eb"},
-                                    ].map(f=>(
+                                    {[{v:"all",l:"الكل"},{v:"cash",l:"نقدي",clr:"#16a34a"},{v:"card",l:"شبكة",clr:"#2563eb"}].map(f=>(
                                         <button key={f.v} onClick={()=>setFMethod(f.v)}
                                             className="flex-1 py-2 rounded-xl font-bold text-xs transition-all"
                                             style={fMethod===f.v
-                                                ? {background: f.clr ? `${f.clr}15` : 'rgba(17,24,39,0.12)', border:`1px solid ${f.clr ? f.clr+'35' : 'rgba(17,24,39,0.2)'}`, color: f.clr || 'var(--text-primary)'}
-                                                : {background:'rgba(0,0,0,0.04)', border:'1px solid rgba(0,0,0,0.07)', color:'var(--text-muted)'}}>
+                                                ? {background:f.clr?`${f.clr}15`:'rgba(17,24,39,0.12)',border:`1px solid ${f.clr?f.clr+'35':'rgba(17,24,39,0.2)'}`,color:f.clr||'var(--text-primary)'}
+                                                : {background:'rgba(0,0,0,0.04)',border:'1px solid rgba(0,0,0,0.07)',color:'var(--text-muted)'}}>
                                             {f.l}
                                         </button>
                                     ))}
                                 </div>
-                                {/* من */}
-                                <div>
-                                    <label className="input-label text-[10px]">من تاريخ</label>
-                                    <input type="date" className="input-field text-sm" value={fFrom} onChange={e=>setFFrom(e.target.value)} />
+                                {/* فلتر مسدد / غير مسدد */}
+                                <div className="flex gap-1.5">
+                                    {[{v:"all",l:"الكل"},{v:"paid",l:"مسدد",clr:"#16a34a"},{v:"unpaid",l:"غير مسدد",clr:"#ef4444"}].map(f=>(
+                                        <button key={f.v} onClick={()=>setFPaid(f.v)}
+                                            className="flex-1 py-2 rounded-xl font-bold text-xs transition-all"
+                                            style={fPaid===f.v
+                                                ? {background:f.clr?`${f.clr}15`:'rgba(17,24,39,0.12)',border:`1px solid ${f.clr?f.clr+'35':'rgba(17,24,39,0.2)'}`,color:f.clr||'var(--text-primary)'}
+                                                : {background:'rgba(0,0,0,0.04)',border:'1px solid rgba(0,0,0,0.07)',color:'var(--text-muted)'}}>
+                                            {f.l}
+                                        </button>
+                                    ))}
                                 </div>
-                                {/* إلى */}
-                                <div>
-                                    <label className="input-label text-[10px]">إلى تاريخ</label>
-                                    <input type="date" className="input-field text-sm" value={fTo} onChange={e=>setFTo(e.target.value)} />
+                                {/* من / إلى */}
+                                <div className="flex gap-2">
+                                    <div className="flex-1">
+                                        <label className="input-label text-[10px]">من</label>
+                                        <input type="date" className="input-field text-sm" value={fFrom} onChange={e=>setFFrom(e.target.value)} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="input-label text-[10px]">إلى</label>
+                                        <input type="date" className="input-field text-sm" value={fTo} onChange={e=>setFTo(e.target.value)} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* — القائمة الشهرية — */}
+                        {/* القائمة الشهرية */}
                         <div className="space-y-2">
                             {months.length === 0 ? (
-                                <div className="text-center py-16 rounded-2xl" style={{...cardStyle, color:'var(--text-muted)'}}>
+                                <div className="text-center py-16 rounded-2xl" style={{...cardStyle,color:'var(--text-muted)'}}>
                                     <i className="ph ph-receipt text-5xl block mb-3 opacity-25"></i>
                                     <p className="font-bold">{hasFilter ? "لا توجد نتائج للفلاتر الحالية" : "لا توجد مصروفات مسجلة"}</p>
                                     {hasFilter && <p className="text-xs mt-1 opacity-60">جرّب تغيير أو مسح الفلاتر</p>}
                                 </div>
                             ) : months.map((month, mi) => {
-                                const mTotal = month.items.reduce((a,b)=>a+Number(b.amount)*(Number(b.qty)||1),0);
-                                const mCash  = month.items.filter(e=>e.method==="cash").reduce((a,b)=>a+Number(b.amount)*(Number(b.qty)||1),0);
-                                const mCard  = month.items.filter(e=>e.method==="card").reduce((a,b)=>a+Number(b.amount)*(Number(b.qty)||1),0);
-                                const mQty   = month.items.reduce((a,b)=>a+(Number(b.qty)||1),0);
-                                // افتح الشهر الحالي تلقائياً
+                                const mTotal  = month.items.reduce((a,b)=>a+Number(b.amount),0);
+                                const mPaid   = month.items.filter(e=>e.paid!==false).reduce((a,b)=>a+Number(b.amount),0);
+                                const mUnpaid = month.items.filter(e=>e.paid===false).reduce((a,b)=>a+Number(b.amount),0);
+                                const mQty    = month.items.reduce((a,b)=>a+(Number(b.qty)||1),0);
                                 const isCurrentMonth = month.key === currentMonthKey;
                                 return (
                                     <MonthAccordion key={month.key} label={month.label} count={month.items.length}
@@ -4880,15 +4906,15 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                         defaultOpen={isCurrentMonth || mi===0}
                                         accentColor="red">
                                         {/* ملخص الشهر */}
-                                        <div className="flex flex-wrap gap-4 px-4 py-2" style={{background:'rgba(0,0,0,0.04)',borderBottom:'1px solid rgba(0,0,0,0.05)'}}>
+                                        <div className="flex flex-wrap gap-4 px-4 py-2.5" style={{background:'rgba(0,0,0,0.04)',borderBottom:'1px solid rgba(0,0,0,0.05)'}}>
                                             <span className="text-xs font-bold flex items-center gap-1" style={{color:'#16a34a'}}>
-                                                <i className="ph ph-money text-sm"></i> نقدي: {mCash.toLocaleString()}
+                                                <i className="ph-fill ph-check-circle text-sm"></i> مسدد: {mPaid.toLocaleString()} ر
                                             </span>
-                                            <span className="text-xs font-bold flex items-center gap-1" style={{color:'#2563eb'}}>
-                                                <i className="ph ph-credit-card text-sm"></i> شبكة: {mCard.toLocaleString()}
+                                            <span className="text-xs font-bold flex items-center gap-1" style={{color:'#ef4444'}}>
+                                                <i className="ph-fill ph-clock text-sm"></i> غير مسدد: {mUnpaid.toLocaleString()} ر
                                             </span>
                                             <span className="text-xs font-bold flex items-center gap-1" style={{color:'#7c3aed'}}>
-                                                <i className="ph ph-hash text-sm"></i> إجمالي العدد: {mQty}
+                                                <i className="ph ph-package text-sm"></i> العدد: {mQty}
                                             </span>
                                         </div>
                                         {/* الجدول */}
@@ -4896,7 +4922,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                             <table className="w-full text-right text-sm">
                                                 <thead>
                                                     <tr style={{background:'rgba(0,0,0,0.05)'}}>
-                                                        {['التاريخ','البيان','المستلم','الطريقة','العدد','المبلغ','الإجمالي',''].map(h=>(
+                                                        {['التاريخ','البيان','المستلم','الطريقة','العدد','المبلغ','الحالة',''].map(h=>(
                                                             <th key={h} className="px-4 py-2.5 text-xs font-bold" style={{color:'var(--text-muted)'}}>{h}</th>
                                                         ))}
                                                     </tr>
@@ -4904,44 +4930,54 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                                 <tbody>
                                                     {month.items.map(ex=>(
                                                         <tr key={ex.id} className="transition-all"
-                                                            style={{borderBottom:'1px solid rgba(0,0,0,0.04)', opacity: ex.viewerHidden ? 0.55 : 1}}
+                                                            style={{borderBottom:'1px solid rgba(0,0,0,0.04)',opacity:ex.viewerHidden?0.55:1}}
                                                             onMouseEnter={e=>e.currentTarget.style.background='rgba(0,0,0,0.03)'}
                                                             onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                                                            <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{color:'var(--text-muted)'}}>{ex.date}</td>
+                                                            {/* التاريخ */}
+                                                            <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{color:'var(--text-muted)'}}>{ex.date||'—'}</td>
+                                                            {/* البيان */}
                                                             <td className="px-4 py-3 font-bold" style={{color:'var(--text-primary)'}}>
                                                                 {ex.title}
                                                                 {ex.viewerHidden && (
                                                                     <span className="mr-2 text-[10px] font-black px-1.5 py-0.5 rounded-md" style={{background:'rgba(234,179,8,0.15)',color:'#a16207',border:'1px solid rgba(234,179,8,0.3)'}}>
-                                                                        👁️ مخفي عن المشاهد
+                                                                        👁️ مخفي
                                                                     </span>
                                                                 )}
                                                             </td>
+                                                            {/* المستلم */}
                                                             <td className="px-4 py-3">
                                                                 {ex.recipient
                                                                     ? <span className="px-2 py-0.5 rounded-lg text-xs font-bold" style={{background:'rgba(17,24,39,0.08)',color:'var(--text-secondary)',border:'1px solid rgba(17,24,39,0.1)'}}>{ex.recipient}</span>
                                                                     : <span style={{color:'var(--text-muted)'}}>—</span>}
                                                             </td>
+                                                            {/* الطريقة */}
                                                             <td className="px-4 py-3">
-                                                                <span className="px-2.5 py-1 rounded-lg text-xs font-black" style={ex.method==="cash"
+                                                                <span className="px-2 py-1 rounded-lg text-xs font-black" style={ex.method==="cash"
                                                                     ? {background:'rgba(22,163,74,0.12)',color:'#16a34a',border:'1px solid rgba(22,163,74,0.2)'}
                                                                     : {background:'rgba(37,99,235,0.1)',color:'#2563eb',border:'1px solid rgba(37,99,235,0.2)'}}>
-                                                                    {ex.method==="cash" ? "نقدي" : "شبكة"}
+                                                                    {ex.method==="cash"?"نقدي":"شبكة"}
                                                                 </span>
                                                             </td>
-                                                            <td className="px-4 py-3 text-center">
-                                                                <span className="font-bold text-sm" style={{color:'var(--text-secondary)'}}>{ex.qty || 1}</span>
-                                                            </td>
+                                                            {/* العدد */}
+                                                            <td className="px-4 py-3 text-center font-bold" style={{color:'var(--text-secondary)'}}>{ex.qty||1}</td>
+                                                            {/* المبلغ */}
                                                             <td className="px-4 py-3 text-right">
                                                                 <span className="font-black text-base" style={{color:'#dc2626'}}>{Number(ex.amount).toLocaleString()}</span>
                                                                 <span className="text-[10px] font-normal mr-1" style={{color:'var(--text-muted)'}}>ر</span>
                                                             </td>
-                                                            <td className="px-4 py-3 text-right">
-                                                                <span className="font-black text-base" style={{color:'#b91c1c'}}>{(Number(ex.amount)*(ex.qty||1)).toLocaleString()}</span>
-                                                                <span className="text-[10px] font-normal mr-1" style={{color:'var(--text-muted)'}}>ر</span>
+                                                            {/* الحالة - مسدد/غير مسدد قابل للضغط */}
+                                                            <td className="px-4 py-3">
+                                                                <button onClick={()=>togglePaid(ex)}
+                                                                    className="px-2.5 py-1 rounded-lg text-xs font-black transition-all hover:opacity-80"
+                                                                    style={ex.paid!==false
+                                                                        ? {background:'rgba(22,163,74,0.12)',color:'#16a34a',border:'1px solid rgba(22,163,74,0.25)'}
+                                                                        : {background:'rgba(239,68,68,0.1)',color:'#ef4444',border:'1px solid rgba(239,68,68,0.25)'}}>
+                                                                    {ex.paid!==false ? '✅ مسدد' : '⏳ غير مسدد'}
+                                                                </button>
                                                             </td>
+                                                            {/* أزرار الإجراءات */}
                                                             <td className="px-4 py-3">
                                                                 <div className="flex justify-center gap-1">
-                                                                    {/* زر إخفاء/إظهار للمشاهد */}
                                                                     <button
                                                                         onClick={()=>{
                                                                             const updated = {...ex, viewerHidden: !ex.viewerHidden};
@@ -4953,8 +4989,8 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                                                         style={ex.viewerHidden
                                                                             ? {background:'rgba(234,179,8,0.15)',color:'#a16207',border:'1px solid rgba(234,179,8,0.3)'}
                                                                             : {background:'rgba(107,114,128,0.08)',color:'#6b7280',border:'1px solid rgba(107,114,128,0.18)'}}
-                                                                        title={ex.viewerHidden ? 'إظهار للمشاهد' : 'إخفاء عن المشاهد'}>
-                                                                        <i className={`ph ${ex.viewerHidden ? 'ph-eye-slash' : 'ph-eye'} text-xs`}></i>
+                                                                        title={ex.viewerHidden?'إظهار':'إخفاء'}>
+                                                                        <i className={`ph ${ex.viewerHidden?'ph-eye-slash':'ph-eye'} text-xs`}></i>
                                                                     </button>
                                                                     <button onClick={()=>setModals({...modals,editExpense:ex})}
                                                                         className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
@@ -4962,7 +4998,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                                                         title="تعديل">
                                                                         <i className="ph-bold ph-pencil-simple text-xs"></i>
                                                                     </button>
-                                                                    <button onClick={()=>{ setExpenses(expenses.filter(i=>i.id!==ex.id)); deleteItemFromCloud('expenses', ex.id); }}
+                                                                    <button onClick={()=>{setExpenses(expenses.filter(i=>i.id!==ex.id));deleteItemFromCloud('expenses',ex.id);}}
                                                                         className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
                                                                         style={{background:'rgba(220,38,38,0.08)',color:'#dc2626',border:'1px solid rgba(220,38,38,0.18)'}}
                                                                         title="حذف">
@@ -4982,7 +5018,6 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                     </div>
                 );
             };
-
 
             // السجل والتقارير
             const TransactionsView = () => {
@@ -5762,8 +5797,7 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
 
                 const saveInvoice = () => {
                     if (cart.length === 0) return notify("الفاتورة فارغة");
-                    const _now = new Date();
-                    const date = `${_now.getFullYear()}/${String(_now.getMonth()+1).padStart(2,'0')}/${String(_now.getDate()).padStart(2,'0')}`;
+                    const _nd=new Date(); const date=`${_nd.getFullYear()}/${String(_nd.getMonth()+1).padStart(2,'0')}/${String(_nd.getDate()).padStart(2,'0')}`;
                     const ts = Date.now();
                     const invoiceTotal = cart.reduce((a, b) => a + b.total, 0);
                     const finalInvNo = invNo || ("PUR-" + ts);
@@ -6766,8 +6800,8 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                                                     <td className="p-3 font-bold text-slate-800">{a.name}<br/><span className="text-[10px] text-slate-400">{a.company}</span></td>
                                                                     <td className="p-3 text-center font-black text-blue-700">{a.currentStock}</td>
                                                                     <td className="p-3 text-center">
-                                                                        <input type="number" className="w-20 text-center font-black rounded-lg border px-2 py-1 text-sm focus:outline-none focus:border-blue-400"
-                                                                            style={{borderColor: diff!==0?'#f59e0b':'#e2e8f0', background: diff!==0?'#fffbeb':'#f8fafc'}}
+                                                                        <input type="number" className="w-20 text-center font-black rounded-lg border px-2 py-1 text-sm focus:outline-none focus:border-emerald-400"
+                                                                            style={{borderColor: diff!==0?'#f59e0b':'rgba(16,185,129,0.4)', background: diff!==0?'#fffbeb':'rgba(16,185,129,0.08)', color: diff!==0?'inherit':'#047857'}}
                                                                             value={a.actualStock}
                                                                             onChange={e => setAdjustments(adjustments.map((x,j) => j===i ? {...x, actualStock: Number(e.target.value)} : x))} />
                                                                     </td>
@@ -8223,11 +8257,11 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                     setCustomers(updPayCust);
                                     const custAfterPay = updPayCust.find(c => c.id === modals.pay.id);
                                     if (custAfterPay) saveItemToCloud('customers', custAfterPay);
-                                    const _payD = new Date(); const _payFmt = `${_payD.getFullYear()}/${String(_payD.getMonth()+1).padStart(2,'0')}/${String(_payD.getDate()).padStart(2,'0')}`;
+                                    const _pd=new Date(); const _pdfmt=`${_pd.getFullYear()}/${String(_pd.getMonth()+1).padStart(2,'0')}/${String(_pd.getDate()).padStart(2,'0')}`;
                                     const trans = { 
                                         id: Date.now(), 
                                         type: 'payment', 
-                                        date: _payFmt, 
+                                        date: _pdfmt, 
                                         timestamp: Date.now(), 
                                         customerId: modals.pay.id, 
                                         customerName: modals.pay.name, 
@@ -8284,6 +8318,12 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                 <div><label className="input-label">البيان</label><input type="text" className="input-field" defaultValue={modals.editExpense.title} id="ex_title" /></div>
                                 <div><label className="input-label">المبلغ</label><input type="number" className="input-field" defaultValue={modals.editExpense.amount} id="ex_amount" /></div>
                                 <div><label className="input-label">العدد</label><input type="number" className="input-field" min="1" defaultValue={modals.editExpense.qty||1} id="ex_qty" /></div>
+                                <div><label className="input-label">الحالة</label>
+                                    <select className="input-field" id="ex_paid" defaultValue={modals.editExpense.paid===false?"false":"true"}>
+                                        <option value="true">✅ مسدد</option>
+                                        <option value="false">⏳ غير مسدد</option>
+                                    </select>
+                                </div>
                                 <div><label className="input-label">المستلم</label><input type="text" className="input-field" defaultValue={modals.editExpense.recipient} id="ex_recipient" /></div>
                                 <div><label className="input-label">التاريخ</label><input type="date" className="input-field" defaultValue={modals.editExpense.date} id="ex_date" /></div>
                                 <div><label className="input-label">طريقة الدفع</label>
@@ -8323,7 +8363,8 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                         qty: Number(document.getElementById('ex_qty').value)||1,
                                         recipient: document.getElementById('ex_recipient').value,
                                         date: document.getElementById('ex_date').value,
-                                        method: document.getElementById('ex_method').value
+                                        method: document.getElementById('ex_method').value,
+                                        paid: document.getElementById('ex_paid').value !== "false"
                                     };
                                     setExpenses(expenses.map(e => e.id === modals.editExpense.id ? updated : e));
                                     saveItemToCloud('expenses', updated); // ☁️
@@ -8801,15 +8842,10 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                                         defaultValue={(() => {
                                             const d = modals.editTransaction.date;
                                             if (!d) return '';
-                                            // New format: YYYY/MM/DD -> convert to YYYY-MM-DD for input[type=date]
                                             const clean = d.split(',')[0].trim();
                                             const parts = clean.split('/');
                                             if (parts.length === 3) {
-                                                // YYYY/MM/DD format (new)
-                                                if (parts[0].length === 4) {
-                                                    return `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
-                                                }
-                                                // DD/MM/YYYY format (legacy)
+                                                if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
                                                 return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
                                             }
                                             return clean;
