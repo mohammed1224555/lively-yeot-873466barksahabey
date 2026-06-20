@@ -1301,6 +1301,58 @@
             },
         };
 
+        // ==================== PendingSyncManager ====================
+        // طابور للعناصر التي فشل حفظها سحابياً — يحفظها محلياً ويعيد رفعها تلقائياً عند توفر الإنترنت
+        const PendingSyncManager = {
+            KEY: 'barq_pending_sync',
+
+            getQueue: () => {
+                try { return JSON.parse(localStorage.getItem(PendingSyncManager.KEY) || '[]'); }
+                catch(e) { return []; }
+            },
+
+            setQueue: (queue) => {
+                try { localStorage.setItem(PendingSyncManager.KEY, JSON.stringify(queue)); }
+                catch(e) { console.error('PendingSyncManager.setQueue:', e); }
+            },
+
+            // إضافة عنصر للطابور (يستبدل أي نسخة سابقة بنفس bid+col+id بآخر نسخة)
+            enqueue: (bid, col, item) => {
+                const queue = PendingSyncManager.getQueue();
+                const itemId = String(item.id || Date.now());
+                const filtered = queue.filter(q => !(q.bid === bid && q.col === col && q.itemId === itemId));
+                filtered.push({ bid, col, itemId, item, queuedAt: Date.now() });
+                PendingSyncManager.setQueue(filtered);
+            },
+
+            remove: (bid, col, itemId) => {
+                const queue = PendingSyncManager.getQueue();
+                PendingSyncManager.setQueue(queue.filter(q => !(q.bid === bid && q.col === col && q.itemId === itemId)));
+            },
+
+            count: () => PendingSyncManager.getQueue().length,
+
+            // محاولة رفع كل العناصر المعلّقة دفعة واحدة
+            flush: async (onProgress) => {
+                if (!window.firebaseDB) return { ok: 0, fail: 0 };
+                const queue = PendingSyncManager.getQueue();
+                if (!queue.length) return { ok: 0, fail: 0 };
+                let ok = 0, fail = 0;
+                for (const entry of queue) {
+                    try {
+                        await CloudManager.saveItem(entry.bid, entry.col, entry.item);
+                        PendingSyncManager.remove(entry.bid, entry.col, entry.itemId);
+                        ok++;
+                    } catch(e) {
+                        console.error('PendingSyncManager.flush item failed:', e);
+                        fail++;
+                    }
+                }
+                if (onProgress) onProgress({ ok, fail, remaining: PendingSyncManager.count() });
+                return { ok, fail };
+            },
+        };
+
         // ==================== UserManager ====================
         const UserManager = {
             login: async (email, pass) => {
@@ -2581,6 +2633,7 @@
             
             // ☁️ Firebase - المستخدم والفرع
             const [cloudStatus, setCloudStatus] = useState('disconnected');
+            const [pendingCount, setPendingCount] = useState(() => PendingSyncManager.count());
             const [showFirebaseSetup, setShowFirebaseSetup] = useState(false);
             const [firebaseUser, setFirebaseUser] = useState(null);       // Firebase Auth user
             const [userProfile, setUserProfile] = useState(null);          // Firestore user profile {role, branches, ...}
@@ -2614,12 +2667,25 @@
             const [pendingSettingsTab, setPendingSettingsTab] = useState(false);
             const [showSettingsLockModal, setShowSettingsLockModal] = useState(false);
             
-            const [inventory, setInventory] = useState([]);
-            const [customers, setCustomers] = useState([]);
-            const [transactions, setTransactions] = useState([]);
-            const [expenses, setExpenses] = useState([]);
-            const [purchaseInvoices, setPurchaseInvoices] = useState([]);
-            const [notes, setNotes] = useState([]);
+            // 💾 تحميل أولي من النسخة المحلية المخزّنة (شبكة أمان فورية قبل اتصال السحابة)
+            const _loadLocalCache = (key) => {
+                try { const v = localStorage.getItem('barq_cache_' + key); return v ? JSON.parse(v) : []; }
+                catch(e) { return []; }
+            };
+            const [inventory, setInventory] = useState(() => _loadLocalCache('inventory'));
+            const [customers, setCustomers] = useState(() => _loadLocalCache('customers'));
+            const [transactions, setTransactions] = useState(() => _loadLocalCache('transactions'));
+            const [expenses, setExpenses] = useState(() => _loadLocalCache('expenses'));
+            const [purchaseInvoices, setPurchaseInvoices] = useState(() => _loadLocalCache('purchaseInvoices'));
+            const [notes, setNotes] = useState(() => _loadLocalCache('notes'));
+
+            // 💾 حفظ محلي فوري عند أي تغيير — شبكة أمان مستقلة عن نجاح/فشل السحابة
+            useEffect(() => { try { localStorage.setItem('barq_cache_inventory', JSON.stringify(inventory)); } catch(e){} }, [inventory]);
+            useEffect(() => { try { localStorage.setItem('barq_cache_customers', JSON.stringify(customers)); } catch(e){} }, [customers]);
+            useEffect(() => { try { localStorage.setItem('barq_cache_transactions', JSON.stringify(transactions)); } catch(e){} }, [transactions]);
+            useEffect(() => { try { localStorage.setItem('barq_cache_expenses', JSON.stringify(expenses)); } catch(e){} }, [expenses]);
+            useEffect(() => { try { localStorage.setItem('barq_cache_purchaseInvoices', JSON.stringify(purchaseInvoices)); } catch(e){} }, [purchaseInvoices]);
+            useEffect(() => { try { localStorage.setItem('barq_cache_notes', JSON.stringify(notes)); } catch(e){} }, [notes]);
             const [settings, setSettings] = useState({ 
                 shopName: "البرق لخدمات السيارات", 
                 shopDesc: "مركز متخصص", 
@@ -2764,16 +2830,14 @@
 
             // ☁️ تحميل بيانات الفرع مرة واحدة (بدون real-time listener)
             // هذا يمنع إعادة رسم الصفحة أثناء الكتابة
+            const branchLoadToken = useRef(0);
             const subscribeToAddBranch = async (branchId) => {
                 if (!window.firebaseDB || !branchId) return;
 
-                // مسح البيانات القديمة عند تغيير الفرع
-                setInventory([]);
-                setCustomers([]);
-                setExpenses([]);
-                setPurchaseInvoices([]);
-                setTransactions([]);
+                const myToken = ++branchLoadToken.current;
                 setCloudStatus('syncing');
+                // ملاحظة: لا نمسح البيانات الحالية هنا — نتركها ظاهرة حتى تصل البيانات الجديدة فعلياً
+                // هذا يمنع ظهور شاشة فارغة إذا فشل التحميل أو تأخر الاتصال
 
                 // فلترة البيانات: إزالة سجلات التهيئة
                 const filterData = (data) => data.filter(item => !item._init);
@@ -2789,6 +2853,10 @@
                         CloudManager.loadOnce(branchId, 'notes'),
                     ]);
 
+                    // إذا بدأ تحميل فرع آخر أثناء الانتظار، نتجاهل هذه النتيجة القديمة
+                    if (myToken !== branchLoadToken.current) return;
+
+                    // الآن فقط، بعد نجاح التحميل، نستبدل البيانات القديمة بالجديدة
                     setInventory(filterData(inv));
                     setCustomers(filterData(cust));
                     setExpenses(filterData(exp));
@@ -2803,8 +2871,10 @@
 
                     setCloudStatus('connected');
                 } catch(e) {
+                    if (myToken !== branchLoadToken.current) return;
                     console.error('subscribeToAddBranch:', e);
-                    setCloudStatus('connected'); // نكمل حتى لو فشل التحميل
+                    setCloudStatus('disconnected');
+                    notify('❌ فشل تحميل بيانات الفرع من السحابة — البيانات المعروضة قد تكون قديمة', 'error');
                 }
             };
 
@@ -2827,6 +2897,8 @@
                         notes.length > 0 ? CloudManager.saveCollection(bid,'notes',notes) : Promise.resolve(),
                     ]);
                     setCloudStatus('connected');
+                    PendingSyncManager.setQueue([]); // الرفع الكامل اليدوي يغطي كل شيء، نمسح الطابور المعلّق
+                    setPendingCount(0);
                     notify('✅ تم الرفع: ' + (inventory.length+customers.length+transactions.length+expenses.length+notes.length) + ' سجل');
                 } catch(e) { setCloudStatus('disconnected'); notify('❌ '+e.message,'error'); }
             };
@@ -2875,13 +2947,30 @@
                 } catch(e) { setCloudStatus('disconnected'); notify('❌ لا اتصال: '+e.message,'error'); }
             };
 
-            // ☁️ حفظ فوري لعنصر - مع ضمان branchId الصحيح
+            // ☁️ حفظ فوري لعنصر - مع ضمان branchId الصحيح + طابور إعادة محاولة تلقائي عند رجوع النت
             const saveItemToCloud = useCallback(async (col, item) => {
                 const bid = currentBranch?.id;
-                if (!window.firebaseDB || !bid) return;
+                if (!bid) {
+                    notify('⚠️ لم يتم الحفظ سحابياً: لا يوجد فرع محدد', 'error');
+                    return;
+                }
+                if (!window.firebaseDB || !navigator.onLine) {
+                    // لا اتصال من الأساس — نضيف للطابور مباشرة بدون محاولة
+                    PendingSyncManager.enqueue(bid, col, item);
+                    setPendingCount(PendingSyncManager.count());
+                    setCloudStatus('disconnected');
+                    return;
+                }
                 try {
                     await CloudManager.saveItem(bid, col, item);
-                } catch(e) { console.error('saveItemToCloud:', e); }
+                } catch(e) {
+                    console.error('saveItemToCloud:', e);
+                    // نضيف العنصر لطابور المزامنة المعلّقة — سيُرفع تلقائياً عند رجوع الإنترنت
+                    PendingSyncManager.enqueue(bid, col, item);
+                    setPendingCount(PendingSyncManager.count());
+                    setCloudStatus('disconnected');
+                    notify('⚠️ تعذّر الحفظ السحابي الآن — سيُحفظ تلقائياً عند رجوع الإنترنت', 'error');
+                }
             }, [currentBranch]);
 
             // ☁️ حذف عنصر - مع ضمان branchId الصحيح
@@ -2891,6 +2980,45 @@
                 try { await CloudManager.deleteItem(bid, col, itemId); }
                 catch(e) { console.error('deleteItemFromCloud:', e); }
             }, [currentBranch]);
+
+            // ☁️🔄 مزامنة تلقائية: رفع العناصر المعلّقة فور توفر الإنترنت
+            const flushPendingSync = useCallback(async (silent) => {
+                if (!window.firebaseDB || !navigator.onLine) return;
+                if (PendingSyncManager.count() === 0) return;
+                if (!silent) notify('🔄 جاري رفع البيانات المعلّقة...', 'info');
+                const { ok, fail, remaining } = await PendingSyncManager.flush();
+                setPendingCount(PendingSyncManager.count());
+                if (ok > 0 && fail === 0) {
+                    setCloudStatus('connected');
+                    notify(`✅ تم رفع ${ok} عنصر معلّق للسحابة تلقائياً`, 'success');
+                } else if (ok > 0 && fail > 0) {
+                    notify(`☁️ رُفع ${ok} عنصر، وما زال ${remaining} بانتظار الاتصال`, 'info');
+                } else if (fail > 0) {
+                    setCloudStatus('disconnected');
+                }
+            }, []);
+
+            useEffect(() => {
+                // عند رجوع الإنترنت: ارفع كل شيء معلّق فوراً
+                const onOnline = () => { setCloudStatus('syncing'); flushPendingSync(false); };
+                const onOffline = () => setCloudStatus('disconnected');
+                window.addEventListener('online', onOnline);
+                window.addEventListener('offline', onOffline);
+
+                // فحص دوري احتياطي كل 20 ثانية (بعض المتصفحات لا تطلق حدث online بشكل موثوق)
+                const intervalId = setInterval(() => {
+                    if (navigator.onLine && PendingSyncManager.count() > 0) flushPendingSync(true);
+                }, 20000);
+
+                // محاولة فورية عند تحميل الصفحة لو فيه عناصر معلّقة من جلسة سابقة
+                if (navigator.onLine && PendingSyncManager.count() > 0) flushPendingSync(true);
+
+                return () => {
+                    window.removeEventListener('online', onOnline);
+                    window.removeEventListener('offline', onOffline);
+                    clearInterval(intervalId);
+                };
+            }, [flushPendingSync]);
 
             // حفظ theme
             useEffect(() => {
@@ -2905,7 +3033,10 @@
                 if (!window.firebaseDB || !bid) return;
                 clearTimeout(syncTimeouts.current[col]);
                 syncTimeouts.current[col] = setTimeout(() =>
-                    CloudManager.saveCollection(bid, col, data).catch(()=>{}), 1500);
+                    CloudManager.saveCollection(bid, col, data).catch(e => {
+                        console.error('syncToCloud:', col, e);
+                        notify('❌ فشل مزامنة ' + col + ' مع السحابة', 'error');
+                    }), 1500);
             }, [currentBranch]);
 
             // الإعدادات تُحفظ محلياً فقط تلقائياً
@@ -8197,9 +8328,12 @@ body{font-family:'Cairo','Arial',sans-serif;background:#fff;color:#0f172a;paddin
                             </div>
                             {/* مؤشر السحابة في الحاسوب */}
                             <div className="hidden md:block">
-                                <div className={`cloud-status ${cloudStatus} cursor-pointer`} onClick={loadFromCloud} title="انقر لرفع البيانات للسحابة">
+                                <div className={`cloud-status ${cloudStatus} cursor-pointer`} onClick={loadFromCloud} title={pendingCount > 0 ? `يوجد ${pendingCount} عنصر بانتظار رفع تلقائي عند توفر الإنترنت — انقر للرفع اليدوي` : "انقر لرفع البيانات للسحابة"}>
                                     <div className="cloud-dot"></div>
                                     <span className="hidden md:inline">{cloudStatus === 'connected' ? '☁️ متصل' : cloudStatus === 'syncing' ? '🔄 مزامنة...' : '⚠️ غير متصل'}</span>
+                                    {pendingCount > 0 && (
+                                        <span className="mr-1 px-1.5 py-0.5 rounded-full text-[10px] font-black" style={{background:'#f59e0b', color:'#fff'}}>{pendingCount}</span>
+                                    )}
                                 </div>
                             </div>
                             {notification && (
